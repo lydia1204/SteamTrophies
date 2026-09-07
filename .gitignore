@@ -8,3 +8,4 @@ dist/
 coverage/
 __pycache__/
 *.pyc
+frontend/styles/trophies.generated.ts

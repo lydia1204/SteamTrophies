@@ -8,7 +8,7 @@ const errors = [];
 function walk(dir, out = []) {
   if (!fs.existsSync(dir)) return out;
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    if (['node_modules','.test-build','dist','.git'].includes(entry.name)) continue;
+    if (['node_modules','.millennium','.test-build','dist','.git'].includes(entry.name)) continue;
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) walk(full, out); else if (entry.isFile()) out.push(full);
   }

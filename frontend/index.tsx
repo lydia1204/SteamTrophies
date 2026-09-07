@@ -9,7 +9,7 @@ import { customizationService } from './state/customization-service';
 import { trophyService } from './state/service';
 import { notificationService } from './state/notification-service';
 import { useMillenniumSurfaceMode } from './state/surface-hooks';
-import './styles/trophies.css';
+import { trophyStyles } from './styles/trophies.generated';
 
 let bootPromise: Promise<void> | null = null;
 function ensureBooted(): Promise<void> {
@@ -40,7 +40,7 @@ void ensureBooted();
 export default definePlugin(() => ({
   title: 'Steam Trophies',
   icon: <TrophyGlyph tier="platinum" size={18} />,
-  content: <ErrorBoundary><PluginPanel /><TrophyToastHost /></ErrorBoundary>,
+  content: <ErrorBoundary><style>{trophyStyles}</style><PluginPanel /><TrophyToastHost /></ErrorBoundary>,
   onDismount() {
     notificationService.dispose();
     trophyService.dispose();

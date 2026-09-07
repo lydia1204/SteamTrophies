@@ -4,9 +4,10 @@
   "version": "0.4.0-rc.1",
   "description": "PlayStation-style trophy experience for Steam, with rarity-driven tiers and a synthetic Platinum.",
   "scripts": {
-    "dev": "starlight watch",
-    "build": "starlight pack",
-    "prepare": "starlight lsp",
+    "styles:generate": "node scripts/generate-css-module.cjs",
+    "dev": "npm run styles:generate && starlight watch",
+    "build": "npm run styles:generate && starlight pack",
+    "prepare": "npm run styles:generate && starlight lsp",
     "typecheck:core": "tsc -p tsconfig.core.json --noEmit",
     "build:test": "tsc -p tsconfig.testbuild.json",
     "test": "npm run build:test && node --test packages/core/test/*.test.cjs packages/customization/test/*.test.cjs packages/storage/test/*.test.cjs packages/steam-adapter/test/*.test.cjs packages/backup/test/*.test.cjs packages/friends/test/*.test.cjs",
