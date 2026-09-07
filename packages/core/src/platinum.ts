@@ -1,0 +1,3 @@
+import { AchievementRecord, AppId, PlatinumRecord } from './model';
+export const PLATINUM_ID='__STEAM_TROPHIES_PLATINUM__' as const;
+export function computePlatinum(appId:AppId,achievements:readonly AchievementRecord[],previous?:PlatinumRecord,nowUnix=Math.floor(Date.now()/1000)):PlatinumRecord { const all=achievements.length>0&&achievements.every(a=>a.achieved); const unlocked=all?(previous?.unlockedAtUnix??Math.max(...achievements.map(a=>a.unlockedAtUnix??nowUnix))):(previous?.achieved?previous.unlockedAtUnix:null); return {id:PLATINUM_ID,appId,tier:'platinum',achieved:all||Boolean(previous?.achieved),unlockedAtUnix:unlocked,name:'Platinum',description:'Earn every Steam achievement in this game.'}; }

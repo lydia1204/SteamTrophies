@@ -1,0 +1,10 @@
+{
+  "generatedGames": 2500,
+  "achievementsPerGame": 40,
+  "visibleGames": 1625,
+  "buildMs": 202.38,
+  "compactIndexBytes": 438301,
+  "visibleGameShardBytes": 29592916,
+  "simulatedIndexParseMs": 2.484,
+  "environmentNote": "Authoring container; use as a regression baseline, not a universal hardware claim."
+}

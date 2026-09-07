@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noImplicitAny": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "lib": ["ES2020", "DOM"]
+  },
+  "include": [
+    "types/frontend-check.d.ts",
+    "frontend/**/*.ts",
+    "frontend/**/*.tsx",
+    "packages/core/src/**/*.ts",
+    "packages/storage/src/**/*.ts",
+    "packages/steam-adapter/src/**/*.ts"
+  ]
+}

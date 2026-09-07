@@ -1,0 +1,10 @@
+node_modules/
+.millennium/
+dist/
+.test-build/
+*.zip
+.DS_Store
+*.log
+coverage/
+__pycache__/
+*.pyc

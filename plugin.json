@@ -1,0 +1,9 @@
+{
+  "$schema": "https://raw.githubusercontent.com/SteamClientHomebrew/Millennium/main/src/sys/plugin-schema.json",
+  "name": "steam-trophies",
+  "common_name": "Steam Trophies",
+  "description": "PlayStation-style trophies for Steam.",
+  "backendType": "lua",
+  "webkitApiVersion": "2.0.0",
+  "version": "0.4.0-rc.1"
+}

@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://steamtrophies.dev/schema/trophy-pack-v1.json",
+  "title": "SteamTrophies Trophy Icon Pack Manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["manifestVersion", "id", "name", "version", "author", "type", "assets"],
+  "properties": {
+    "manifestVersion": { "const": 1 },
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$", "not": { "pattern": "^builtin\\." } },
+    "name": { "type": "string", "minLength": 1, "maxLength": 80 },
+    "version": { "type": "string", "pattern": "^v?[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$", "maxLength": 40 },
+    "author": { "type": "string", "minLength": 1, "maxLength": 80 },
+    "description": { "type": "string", "maxLength": 500 },
+    "license": { "type": "string", "maxLength": 120 },
+    "homepage": { "type": "string", "pattern": "^https://", "maxLength": 300 },
+    "tags": { "type": "array", "maxItems": 12, "uniqueItems": true, "items": { "type": "string", "minLength": 1, "maxLength": 32 } },
+    "accentColor": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+    "attribution": { "type": "string", "maxLength": 300 },
+    "recommendedFor": { "type": "array", "uniqueItems": true, "maxItems": 3, "items": { "enum": ["desktop", "big_picture", "deck"] } },
+    "type": { "const": "trophy-icon-pack" },
+    "minSteamTrophiesVersion": { "type": "string", "maxLength": 40 },
+    "preview": { "$ref": "#/$defs/imagePath" },
+    "assets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["trophy.bronze", "trophy.silver", "trophy.gold", "trophy.platinum"],
+      "properties": {
+        "trophy.bronze": { "$ref": "#/$defs/imagePath" },
+        "trophy.silver": { "$ref": "#/$defs/imagePath" },
+        "trophy.gold": { "$ref": "#/$defs/imagePath" },
+        "trophy.platinum": { "$ref": "#/$defs/imagePath" }
+      }
+    },
+    "customTrophies": {
+      "type": "object",
+      "maxProperties": 48,
+      "propertyNames": { "pattern": "^custom\\.[a-z0-9][a-z0-9._-]{0,63}$" },
+      "additionalProperties": { "$ref": "#/$defs/imagePath" }
+    },
+    "sounds": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "toast.bronze": { "$ref": "#/$defs/audioPath" },
+        "toast.silver": { "$ref": "#/$defs/audioPath" },
+        "toast.gold": { "$ref": "#/$defs/audioPath" },
+        "toast.platinum": { "$ref": "#/$defs/audioPath" }
+      }
+    }
+  },
+  "$defs": {
+    "imagePath": { "type": "string", "minLength": 1, "maxLength": 240, "pattern": "^(?!/)(?![A-Za-z]:)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!resources/)[^<>:\"|?*]+\\.(?:png|jpe?g|webp)$" },
+    "audioPath": { "type": "string", "minLength": 1, "maxLength": 240, "pattern": "^(?!/)(?![A-Za-z]:)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!resources/)[^<>:\"|?*]+\\.(?:wav|ogg)$" }
+  }
+}

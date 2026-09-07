@@ -1,0 +1,37 @@
+{
+  "name": "steam-trophies",
+  "private": true,
+  "version": "0.4.0-rc.1",
+  "description": "PlayStation-style trophy experience for Steam, with rarity-driven tiers and a synthetic Platinum.",
+  "scripts": {
+    "dev": "starlight watch",
+    "build": "starlight pack",
+    "prepare": "starlight lsp",
+    "typecheck:core": "tsc -p tsconfig.core.json --noEmit",
+    "build:test": "tsc -p tsconfig.testbuild.json",
+    "test": "npm run build:test && node --test packages/core/test/*.test.cjs packages/customization/test/*.test.cjs packages/storage/test/*.test.cjs packages/steam-adapter/test/*.test.cjs packages/backup/test/*.test.cjs packages/friends/test/*.test.cjs",
+    "bench": "npm run build:test && node bench/library-scale.cjs",
+    "verify": "npm run release:validate",
+    "clean": "node scripts/clean.cjs",
+    "typecheck:frontend:offline": "tsc -p tsconfig.frontendcheck.json",
+    "pack:validate": "node scripts/validate-pack.cjs",
+    "check:cef85": "node scripts/check-cef85-css.cjs",
+    "resolution:test": "npm run build:test && node scripts/resolution-matrix.cjs",
+    "security:audit": "node scripts/security-audit.cjs",
+    "security:pack-corpus": "node scripts/security-pack-corpus.cjs",
+    "gamer:qa": "node scripts/gamer-qa.cjs",
+    "repo:validate": "node scripts/validate-repo.cjs",
+    "release:validate": "npm run clean && npm run typecheck:core && npm run typecheck:frontend:offline && npm run check:cef85 && npm test && npm run resolution:test && npm run security:audit && npm run security:pack-corpus && npm run gamer:qa && npm run runtime:gates && npm run pack:validate -- examples/trophy-pack-template && npm run repo:validate && npm run bench",
+    "runtime:gates": "node scripts/runtime-gates.cjs",
+    "runtime:gates:require-pass": "node scripts/runtime-gates.cjs --require-pass"
+  },
+  "devDependencies": {
+    "@steambrew/starlight": "1.1.4",
+    "@types/react": "19.1.1",
+    "@types/react-dom": "19.1.1",
+    "typescript": "5.8.3"
+  },
+  "engines": {
+    "node": ">=22 <27"
+  }
+}

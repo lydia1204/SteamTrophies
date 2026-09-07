@@ -1,0 +1,83 @@
+name: Bug report
+description: Report a reproducible SteamTrophies problem
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping harden SteamTrophies. Please remove API keys, account secrets and unrelated personal information from logs/screenshots.
+
+  - type: input
+    id: version
+    attributes:
+      label: SteamTrophies version or commit
+      placeholder: 0.4.0-rc.1 / abc1234
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - Windows 11
+        - Windows 10
+        - Linux desktop
+        - Steam Deck Desktop Mode
+        - Steam Deck Gaming Mode
+        - macOS development/build
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: host
+    attributes:
+      label: Millennium / Decky version
+      placeholder: Millennium 3.4.1 / Decky version
+    validations:
+      required: true
+
+  - type: dropdown
+    id: steam_channel
+    attributes:
+      label: Steam channel
+      options:
+        - Stable
+        - Beta
+        - Unknown
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Include what you expected and what actually happened.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+      placeholder: |
+        1. Open ...
+        2. Select ...
+        3. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics / logs
+      description: Paste only relevant, redacted diagnostics. Never include Steam Web API keys or session secrets.
+      render: shell
+
+  - type: textarea
+    id: media
+    attributes:
+      label: Screenshots or video
+      description: Drag in sanitized screenshots/video if they help reproduce the issue.

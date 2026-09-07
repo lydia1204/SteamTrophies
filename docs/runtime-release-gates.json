@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "gates": [
+    {"id":"R01","name":"Steam Stable cold start","status":"pending","evidence":[],"required":true},
+    {"id":"R02","name":"Steam Stable plugin unload and reload","status":"pending","evidence":[],"required":true},
+    {"id":"R03","name":"Steam Beta compatibility smoke test","status":"pending","evidence":[],"required":true},
+    {"id":"R04","name":"Current desktop header hook fail-closed test","status":"pending","evidence":[],"required":true},
+    {"id":"R05","name":"First-run library discovery on a large real account","status":"pending","evidence":[],"required":true},
+    {"id":"R06","name":"Warm trophy UI open latency on real Steam","status":"pending","evidence":[],"required":true},
+    {"id":"R07","name":"Real achievement unlock event propagation","status":"pending","evidence":[],"required":true},
+    {"id":"R08","name":"Burst unlock notification behavior","status":"pending","evidence":[],"required":true},
+    {"id":"R09","name":"Offline launch with populated cache","status":"pending","evidence":[],"required":true},
+    {"id":"R10","name":"Corrupt index local recovery and quarantine","status":"pending","evidence":[],"required":true},
+    {"id":"R11","name":"Controller-only Big Picture complete focus walk","status":"pending","evidence":[],"required":true},
+    {"id":"R12","name":"Live Desktop to GamePad UI-mode switching","status":"pending","evidence":[],"required":true},
+    {"id":"R13","name":"Game-specific resource-pack import and override","status":"pending","evidence":[],"required":true},
+    {"id":"R14","name":"Per-achievement custom trophy resource","status":"pending","evidence":[],"required":true},
+    {"id":"R15","name":"Friend comparison with real Steam friend data","status":"pending","evidence":[],"required":true},
+    {"id":"R16","name":"Physical Steam Deck native Gaming Mode","status":"pending","evidence":[],"required":true},
+    {"id":"R17","name":"Physical Steam Deck docked external display","status":"pending","evidence":[],"required":true},
+    {"id":"R18","name":"Steam Deck sleep and resume","status":"pending","evidence":[],"required":true},
+    {"id":"R19","name":"Windows live package validation","status":"pending","evidence":[],"required":true},
+    {"id":"R20","name":"Linux live package validation","status":"pending","evidence":[],"required":true}
+  ]
+}

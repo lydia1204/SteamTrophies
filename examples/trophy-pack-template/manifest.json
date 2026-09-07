@@ -1,0 +1,35 @@
+{
+  "manifestVersion": 1,
+  "id": "example.my-trophy-pack",
+  "name": "My Trophy Pack",
+  "version": "1.0.0",
+  "author": "Your Name",
+  "description": "Copy this folder, replace the tier icons, optionally add named one-off trophies/sounds, and give the pack a unique id.",
+  "license": "Your choice",
+  "type": "trophy-icon-pack",
+  "minSteamTrophiesVersion": "0.3.0",
+  "assets": {
+    "trophy.bronze": "trophies/bronze.png",
+    "trophy.silver": "trophies/silver.png",
+    "trophy.gold": "trophies/gold.png",
+    "trophy.platinum": "trophies/platinum.png"
+  },
+  "preview": "trophies/platinum.png",
+  "homepage": "https://example.com/my-trophy-pack",
+  "tags": [
+    "template",
+    "custom-icons"
+  ],
+  "accentColor": "#F2C75A",
+  "recommendedFor": [
+    "desktop",
+    "big_picture",
+    "deck"
+  ],
+  "customTrophies": {
+    "custom.special-gold": "custom/special-gold.png"
+  },
+  "sounds": {
+    "toast.gold": "sounds/gold.wav"
+  }
+}

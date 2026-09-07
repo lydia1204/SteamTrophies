@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "lib": [
+      "ES2022",
+      "DOM"
+    ],
+    "noEmit": true
+  },
+  "include": [
+    "packages/core/src/**/*.ts",
+    "packages/storage/src/**/*.ts",
+    "packages/steam-adapter/src/**/*.ts",
+    "packages/backup/src/**/*.ts",
+    "packages/friends/src/**/*.ts",
+    "packages/customization/src/**/*.ts"
+  ]
+}
