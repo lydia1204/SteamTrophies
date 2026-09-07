@@ -10,8 +10,10 @@ const {
   compileThemeCssVariables,
   isQuietNow,
   mergePackCatalog,
+  message,
   recordThemeFailure,
   recordThemeSuccess,
+  pseudoLocalize,
   removePackReferences,
   reorderWidget,
   resolveToastSound,
@@ -23,6 +25,14 @@ const {
   validatePackManifest,
   validateNotificationPreferences,
 } = require('../../../.test-build/packages/customization/src/index.js');
+
+test('English catalog interpolates values and pseudo locale expands visible strings safely', () => {
+  assert.equal(message('app.gamesEarned', { count: 12 }), '12 games with earned trophies');
+  const pseudo = message('app.gamesEarned', { count: 12 }, 'qps-ploc');
+  assert.match(pseudo, /^⟦.*12.*⟧$/);
+  assert.ok(pseudo.length > '12 games with earned trophies'.length);
+  assert.equal(pseudoLocalize('Open {count} games').includes('{count}'), true);
+});
 
 function userPack(overrides = {}) {
   return {

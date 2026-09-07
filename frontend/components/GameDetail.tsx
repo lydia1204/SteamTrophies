@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { GameSnapshot } from '../../packages/core/src';
+import { message } from '../../packages/customization/src';
 import { useCustomizationState } from '../state/customization-hooks';
 import { customizationService } from '../state/customization-service';
 import { AchievementTrophyOverridePanel } from './customization/AchievementTrophyOverridePanel';
@@ -22,21 +23,21 @@ export function GameDetail({ game, onBack, onRefresh }: { game: GameSnapshot; on
   return (
     <div className="st-detail" data-stt-component="game-detail" data-stt-appid={game.appId}>
       <div className="st-detail-header" data-stt-slot="header">
-        <button className="st-icon-button" onClick={onBack} aria-label="Back">‹</button>
+        <button className="st-icon-button" onClick={onBack} aria-label={message('app.back')}>‹</button>
         <div className="st-detail-heading"><h2>{game.name}</h2><p>{game.summary.earnedCount}/{game.summary.achievementCount} • {game.summary.completionPercent}%</p></div>
         <div className="st-detail-actions">
-          <button className="st-refresh-button" onClick={() => void (project ? customizationService.removeProject(game.appId) : customizationService.addProject(game.appId))}>{project ? 'Untrack project' : 'Trophy Project'}</button>
-          <button className="st-refresh-button" onClick={() => void customizationService.setPinned(game.appId, !pinned)}>{pinned ? 'Unpin' : 'Pin'}</button>
-          <button className="st-refresh-button" onClick={() => void customizationService.setHidden(game.appId, !hidden)}>{hidden ? 'Unhide' : 'Hide'}</button>
-          <button className="st-refresh-button" onClick={() => setCustomizing((v) => !v)}>Trophy icons</button>
-          <button className="st-refresh-button" onClick={onRefresh}>Refresh</button>
+          <button className="st-refresh-button" onClick={() => void (project ? customizationService.removeProject(game.appId) : customizationService.addProject(game.appId))}>{message(project ? 'project.remove' : 'project.add')}</button>
+          <button className="st-refresh-button" onClick={() => void customizationService.setPinned(game.appId, !pinned)}>{message(pinned ? 'app.unpin' : 'app.pin')}</button>
+          <button className="st-refresh-button" onClick={() => void customizationService.setHidden(game.appId, !hidden)}>{message(hidden ? 'app.unhide' : 'app.hide')}</button>
+          <button className="st-refresh-button" onClick={() => setCustomizing((v) => !v)}>{message('pack.gameOverride')}</button>
+          <button className="st-refresh-button" onClick={onRefresh}>{message('app.refresh')}</button>
         </div>
       </div>
 
       {project && (
         <div className="stt-project-banner" data-stt-component="trophy-project">
           <TrophyGlyph tier={game.summary.goldCount ? 'gold' : game.summary.silverCount ? 'silver' : 'bronze'} appId={game.appId} size={34} />
-          <div><strong>Active Trophy Project</strong><span>{project.targetAchievementIds.length ? `${project.targetAchievementIds.length} targeted trophies` : 'Choose locked trophies below as your next targets.'}</span></div>
+          <div><strong>{message('project.active')}</strong><span>{project.targetAchievementIds.length ? message('project.targets', { count: project.targetAchievementIds.length }) : message('project.chooseTargets')}</span></div>
         </div>
       )}
 
@@ -57,14 +58,14 @@ export function GameDetail({ game, onBack, onRefresh }: { game: GameSnapshot; on
               <div className={`st-achievement ${achievement.achieved ? 'is-earned' : 'is-locked'}${targeted ? ' is-targeted' : ''}`} data-stt-component="achievement-card" data-stt-achievement={achievement.id} data-stt-tier={tier} data-stt-state={achievement.achieved ? 'earned' : 'locked'}>
                 <div className="st-achievement-icon">{achievement.iconUrl ? <img src={achievement.iconUrl} loading="lazy" alt="" /> : <TrophyGlyph tier={tier} size={26} appId={game.appId} achievementId={achievement.id} />}</div>
                 <div className="st-achievement-copy">
-                  <strong>{achievement.hidden && !achievement.achieved ? 'Hidden Trophy' : achievement.name}</strong>
-                  <p>{achievement.hidden && !achievement.achieved ? 'Unlock this trophy to reveal its details.' : achievement.description}</p>
+                  <strong>{achievement.hidden && !achievement.achieved ? message('achievement.hidden') : achievement.name}</strong>
+                  <p>{achievement.hidden && !achievement.achieved ? message('achievement.hiddenDescription') : achievement.description}</p>
                   {achievement.achieved && <small>{formatDate(achievement.unlockedAtUnix)}</small>}
                 </div>
                 <div className="st-achievement-rarity"><TrophyGlyph tier={tier} size={23} appId={game.appId} achievementId={achievement.id} /><span>{achievement.globalUnlockPercent == null ? '—' : `${achievement.globalUnlockPercent.toFixed(1)}%`}</span></div>
                 <div className="st-achievement-actions">
-                  {project && !achievement.achieved && <button className="st-mini-button" onClick={() => void customizationService.setProjectTargets(game.appId, targeted ? project.targetAchievementIds.filter((id) => id !== achievement.id) : [...project.targetAchievementIds, achievement.id])}>{targeted ? 'Targeted' : 'Target'}</button>}
-                  <button className="st-mini-button" onClick={() => setCustomizingAchievementId((id) => id === achievement.id ? null : achievement.id)}>Icon</button>
+                  {project && !achievement.achieved && <button className="st-mini-button" onClick={() => void customizationService.setProjectTargets(game.appId, targeted ? project.targetAchievementIds.filter((id) => id !== achievement.id) : [...project.targetAchievementIds, achievement.id])}>{message(targeted ? 'project.targeted' : 'project.target')}</button>}
+                  <button className="st-mini-button" onClick={() => setCustomizingAchievementId((id) => id === achievement.id ? null : achievement.id)}>{message('app.icon')}</button>
                 </div>
               </div>
               {customizingAchievementId === achievement.id && <AchievementTrophyOverridePanel appId={game.appId} achievement={achievement} tier={tier} onClose={() => setCustomizingAchievementId(null)} />}
