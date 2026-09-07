@@ -1,5 +1,10 @@
 {
   "name": "Steam Trophies",
   "author": "SteamTrophies contributors",
-  "flags": []
+  "flags": [],
+  "api_version": 1,
+  "publish": {
+    "tags": ["achievements", "trophies", "library"],
+    "description": "A controller-friendly trophy cabinet for earned Steam achievements."
+  }
 }
