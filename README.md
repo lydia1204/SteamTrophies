@@ -4,7 +4,7 @@
 
 SteamTrophies is an open-source Steam client plugin project that layers a fast, controller-friendly trophy experience over Steam achievements without replacing Steam as the source of truth. It assigns rarity-driven Bronze, Silver and Gold trophies, creates a synthetic Platinum for true game completion, preserves the rarity a trophy had when you earned it, and presents the result through Desktop, Big Picture and future Steam Deck surfaces.
 
-Current repository state: **0.4.0-rc.1 release candidate**.
+Current repository state: **0.4.0-rc.1 finalization candidate**. The dependency graph, macOS source checks, Lua validation, and Decky build are reproducible, but this is not a production release while live runtime gates remain pending.
 
 > [!IMPORTANT]
 > This repository is intentionally at release-candidate stage. The offline engineering gates are automated, but several live Steam and physical-device release gates still require evidence on the exact current Steam/Millennium/Decky builds. See [Runtime Release Gates](docs/RUNTIME_RELEASE_GATES.md).
@@ -169,7 +169,7 @@ Desktop, Big Picture and Deck surfaces maintain independent layout state over st
 | Windows 10/11 | Yes | Millennium | Primary live target, runtime gates pending |
 | Desktop Linux | Yes | Millennium | Primary live target, runtime gates pending |
 | Steam Deck Desktop Mode | Yes | Millennium/Linux | Same underlying Linux constraints |
-| Steam Deck Gaming Mode | Yes | Decky shell over shared core | Final live Decky packaging and physical-device gates pending |
+| Steam Deck Gaming Mode | Yes | Installable Decky package over shared storage/core semantics | Package build passes; physical-device gates pending |
 | macOS | Yes | Upstream-dependent | Build/test/storage-path compatible; do not claim current Millennium injection support until upstream supports it and it is tested |
 
 See [Platform Matrix](docs/PLATFORM_MATRIX.md) for the detailed device/runtime matrix.
@@ -204,7 +204,16 @@ Avoid claiming support for a Steam packaging format that Millennium itself does 
 
 ### Steam Deck Gaming Mode
 
-The architecture contains a separate Decky shell that shares Trophy Core and persisted data shapes. Before the public release, the finalizer must:
+The repository contains a buildable Decky plugin under `decky/`. It reads the shared earned-only trophy index, exposes controller-focusable summary/recent-game views, and reports storage health without adding privileged operations. Build it with:
+
+```bash
+npm ci --ignore-scripts
+npm run decky:typecheck
+npm run decky:build
+python -m compileall -q decky
+```
+
+The output is `decky/dist/index.js`; package it together with `decky/plugin.json` and `decky/main.py` using the current Decky Loader ZIP layout. Before a public release, the finalizer must:
 
 1. package the Decky plugin using the then-current Decky template and `@decky/ui`
 2. test installation through a current Decky Loader build
@@ -212,7 +221,7 @@ The architecture contains a separate Decky shell that shares Trophy Core and per
 4. test native 1280x800 plus docked external-display layouts on physical hardware
 5. verify sleep/resume and offline behavior
 
-Until those gates are complete, the Decky package should be described as release-candidate functionality rather than a finished public binary.
+Until those gates are complete, the Decky package is an installable release candidate rather than a production-ready public binary.
 
 ### macOS
 
@@ -225,6 +234,15 @@ The repository supports macOS development and uses:
 for local data when running on macOS.
 
 However, live Steam client injection depends on the current host project's macOS support. Building or testing the source on a Mac does **not** by itself prove that the released Millennium runtime can load it into Steam. The final public documentation must reflect the actual upstream state at release time.
+
+As verified on 2026-09-06, `@steambrew/starlight` 1.1.4 is the current npm release but ships only Windows x64 and Linux x64 compiler binaries. On Apple Silicon, install the exact dependency graph without lifecycle scripts and run the platform-neutral validation suite:
+
+```bash
+npm ci --ignore-scripts
+npm run release:validate
+```
+
+`npm run prepare` and `npm run build` remain blocked on native macOS until upstream publishes a compatible Starlight binary. CI still exercises all platform-neutral checks on macOS and performs the production Starlight packaging smoke test on Linux.
 
 ## Build from source
 
@@ -245,6 +263,8 @@ git clone <your-fork-or-project-url>
 cd SteamTrophies
 npm install
 ```
+
+On a platform not currently supported by the Starlight compiler binary, use `npm install --ignore-scripts` and follow the macOS note above.
 
 The release repository should commit the real generated `package-lock.json`. Do not manufacture one by hand.
 
