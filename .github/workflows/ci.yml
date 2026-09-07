@@ -35,9 +35,15 @@ jobs:
           python-version: '3.13'
 
       - name: Install exact dependencies
+        if: matrix.os != 'macos-latest'
         run: npm ci
 
+      - name: Install exact dependencies without unsupported Starlight lifecycle on macOS
+        if: matrix.os == 'macos-latest'
+        run: npm ci --ignore-scripts
+
       - name: Prepare Starlight tooling
+        if: matrix.os != 'macos-latest'
         run: npm run prepare
 
       - name: Offline engineering gate
@@ -61,11 +67,17 @@ jobs:
           node-version: 24
           cache: npm
 
+      - name: Install Lua compiler
+        run: sudo apt-get update && sudo apt-get install -y lua5.4
+
       - name: Install exact dependencies
         run: npm ci
 
       - name: Prepare Starlight tooling
         run: npm run prepare
+
+      - name: Validate Lua backend syntax
+        run: npm run lua:validate
 
       - name: Build package
         run: npm run build

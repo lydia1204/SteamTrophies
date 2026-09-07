@@ -14,6 +14,10 @@
     "verify": "npm run release:validate",
     "clean": "node scripts/clean.cjs",
     "typecheck:frontend:offline": "tsc -p tsconfig.frontendcheck.json",
+    "decky:typecheck": "npm run typecheck --workspace steam-trophies-decky",
+    "decky:build": "npm run build --workspace steam-trophies-decky",
+    "decky:python": "python -m compileall -q decky",
+    "lua:validate": "node scripts/validate-lua.cjs",
     "pack:validate": "node scripts/validate-pack.cjs",
     "check:cef85": "node scripts/check-cef85-css.cjs",
     "resolution:test": "npm run build:test && node scripts/resolution-matrix.cjs",
@@ -21,10 +25,13 @@
     "security:pack-corpus": "node scripts/security-pack-corpus.cjs",
     "gamer:qa": "node scripts/gamer-qa.cjs",
     "repo:validate": "node scripts/validate-repo.cjs",
-    "release:validate": "npm run clean && npm run typecheck:core && npm run typecheck:frontend:offline && npm run check:cef85 && npm test && npm run resolution:test && npm run security:audit && npm run security:pack-corpus && npm run gamer:qa && npm run runtime:gates && npm run pack:validate -- examples/trophy-pack-template && npm run repo:validate && npm run bench",
+    "release:validate": "npm run clean && npm run typecheck:core && npm run typecheck:frontend:offline && npm run decky:typecheck && npm run decky:build && npm run decky:python && npm run check:cef85 && npm test && npm run resolution:test && npm run security:audit && npm run security:pack-corpus && npm run gamer:qa && npm run runtime:gates && npm run pack:validate -- examples/trophy-pack-template && npm run repo:validate && npm run bench",
     "runtime:gates": "node scripts/runtime-gates.cjs",
     "runtime:gates:require-pass": "node scripts/runtime-gates.cjs --require-pass"
   },
+  "workspaces": [
+    "decky"
+  ],
   "devDependencies": {
     "@steambrew/starlight": "1.1.4",
     "@types/react": "19.1.1",
