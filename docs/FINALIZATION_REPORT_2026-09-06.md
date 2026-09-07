@@ -55,8 +55,13 @@ The final umbrella result included 37 behavior/security/storage/localization tes
 - No Steam Stable/Beta account-level achievement adapter validation was possible.
 - No Windows or Linux live Millennium run was available.
 - No physical Steam Deck was available for controller, display, sleep/resume, offline, or notification evidence.
+- The Decky artifact is installable and buildable but currently exposes the earned summary, recent games, and storage diagnostics only; Trophy Projects, overrides, settings, notifications, and full game detail still need physical-device implementation/validation before feature parity can be claimed.
+- The English catalog and pseudo-localization harness cover the primary library, game-detail, Big Picture, and diagnostics surfaces. Secondary customization panels still contain hard-coded English and require a final catalog migration/clipping pass.
+- Backup contracts and constrained storage recovery exist, but a complete user-facing backup export/import workflow is not implemented.
+- Diagnostics still need live host/version, hook compatibility, refresh-state, and surface-state evidence wired from the actual runtime.
 - Required runtime screenshots do not exist and were not replaced with mockups.
 - No license exists. Choosing one remains an owner decision before public distribution.
 - No Git remote exists, so nothing can be pushed and no GitHub Release can be created.
+- The GitHub Actions workflow parsed locally, but no hosted matrix run was possible without a GitHub remote.
 
 `npm run runtime:gates:require-pass` must continue to fail until those evidence-bearing gates are completed. The version remains `0.4.0-rc.1`; this report does not promote it to a stable release.
