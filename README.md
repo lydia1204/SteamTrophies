@@ -1,569 +1,466 @@
 # SteamTrophies
 
-**A trophy cabinet for Steam that treats achievements like achievements deserve to be treated.**
+A customizable trophy cabinet for Steam: rarity-based Bronze, Silver and Gold awards, a synthetic Platinum for completion, and a fast, local-first library.
 
-SteamTrophies is an open-source Steam client plugin project that layers a fast, controller-friendly trophy experience over Steam achievements without replacing Steam as the source of truth. It assigns rarity-driven Bronze, Silver and Gold trophies, creates a synthetic Platinum for true game completion, preserves the rarity a trophy had when you earned it, and presents the result through Desktop, Big Picture and future Steam Deck surfaces.
+**0.4.0-rc.1 — experimental release candidate, not a stable release.** SteamTrophies presents Steam achievements; it does not unlock, relock or modify achievements on Steam. It is not affiliated with Valve, Sony, PlayStation or Millennium.
 
-Current repository state: **0.4.0-rc.1 finalization candidate**. The dependency graph, macOS source checks, Lua validation, and Decky build are reproducible, but this is not a production release while live runtime gates remain pending.
-
-September 8 desktop update: three artwork styles (portrait, landscape store capsule, icon) with an ordered fallback setting; pointer-aware focus rings; pinned-row markers; and blue Platinum completion tooltips. Original completion identity is retained when achievements are added later. Forager's exact `feat83` Completionist achievement is an explicit historical-completion rule, not a name-based heuristic. Other incomplete first-import catalogues are not assumed previously complete. See [Desktop QA](docs/DESKTOP_QA_2026-09-08.md) for remaining live checks.
-
-In-game trophy visuals depend on Steam registering a working game overlay, not merely its settings switch being enabled. Notification settings include a delayed outside-window test and delivery diagnostics. A successful sound or desktop renderer does not prove an in-game popup appeared.
-
-Mac validation update (2026-09-07): user screenshots exposed incorrect all-Gold rarity, import sounds, hidden narrow-card counts, and missing game artwork. See [Screenshot QA and repair report](docs/SCREENSHOT_QA_2026-09-07.md) for evidence, fixes, remaining gaps, and user testing. Earlier engineering PASS labels are not live acceptance.
+[Downloads and release notes](https://github.com/lydia1204/SteamTrophies/releases) · [Issues](https://github.com/lydia1204/SteamTrophies/issues) · [Security policy](SECURITY.md)
 
 > [!IMPORTANT]
-> This repository is intentionally at release-candidate stage. The offline engineering gates are automated, but several live Steam and physical-device release gates still require evidence on the exact current Steam/Millennium/Decky builds. See [Runtime Release Gates](docs/RUNTIME_RELEASE_GATES.md).
+> This plugin requires Millennium's modern Lua/Starlight **`.star`** format. An older host is not sufficient merely because it loads legacy plugins. SteamTrophies is **not listed in the Millennium or Decky plugin stores**. The `.star` candidate is unsigned and intended for compatible test/development hosts. Do not bypass signature verification or operating-system protections to install it.
+>
+> This repository is initially private: downloads and source require access from the owner. A public release and project license have not yet been selected.
 
-## Why SteamTrophies exists
+## Contents
 
-Steam achievements are excellent game data, but the default Steam client does not provide the kind of persistent trophy-cabinet experience many completionists enjoy on console platforms. SteamTrophies keeps Steam achievements intact and adds a presentation layer focused on rarity, completion, history, customization and large-library usability.
+- [Compatibility](#compatibility)
+- [Windows PC installation](#windows-pc-installation)
+- [Linux installation](#linux-installation)
+- [macOS installation](#macos-installation)
+- [Install the SteamTrophies package](#install-the-steamtrophies-package)
+- [Steam Deck and Decky setup](#steam-deck-and-decky-setup)
+- [First launch and everyday use](#first-launch-and-everyday-use)
+- [Trophy rules and historical completion](#trophy-rules-and-historical-completion)
+- [Settings reference](#settings-reference)
+- [Trophy artwork and sound packs](#trophy-artwork-and-sound-packs)
+- [Notifications and the Steam overlay](#notifications-and-the-steam-overlay)
+- [Backups, updates, rollback and removal](#backups-updates-rollback-and-removal)
+- [Troubleshooting](#troubleshooting)
+- [Privacy and security](#privacy-and-security)
+- [Build from source](#build-from-source)
+- [Validation, contributing and license](#validation-contributing-and-license)
 
-The project is built around a few hard rules:
+## Compatibility
 
-- **Steam remains authoritative.** SteamTrophies never invents a real game achievement.
-- **Your trophy history is durable.** A trophy's awarded tier and award-time rarity do not silently change because global percentages drift later.
-- **Completion feels special.** Platinum is synthetic and appears only after every real Steam achievement in a game is earned.
-- **Your library stays clean.** Ordinary 0% games do not flood the trophy cabinet.
-- **Opening the UI is local-first.** Network calls and full library scans do not sit on the trophy-button critical path.
-- **Customization is data, not executable code.** User trophy packs cannot smuggle JavaScript, Lua or arbitrary programs into Steam.
-- **Controller use is first-class.** Big Picture is a dedicated surface, not a stretched desktop panel.
-- **Steam must survive plugin failure.** Host integration is isolated and designed to fail closed.
+| Environment | Status for this candidate |
+| --- | --- |
+| Windows / native desktop Linux + modern Millennium | Intended targets. Automated checks exist; current live host/device acceptance remains pending. |
+| macOS + experimental modern Millennium | Desktop plugin has run on a locally built experimental host. This does not establish support in a public Millennium installer. |
+| Big Picture | Dedicated controller-oriented implementation; current-host and controller acceptance remain pending. |
+| Steam Deck Desktop Mode | Depends on a compatible native Linux Millennium host; not physically certified for this RC. |
+| Steam Deck Gaming Mode | Separate Decky adapter builds. It currently reads a saved cabinet; it is not the full desktop plugin or a standalone achievement scanner. Physical-device gates remain pending. |
 
-## Gallery
+The September 8 engineering pass passed **70 automated tests**, 21 resolution fixtures, hostile-pack tests, Lua validation and the local five-section `.star` verification. **20 live runtime release gates remain pending.** A green source build is not proof of a working overlay, controller UI or physical Deck install. See [runtime gates](docs/RUNTIME_RELEASE_GATES.md) and [latest desktop QA](docs/DESKTOP_QA_2026-09-08.md).
 
-Real runtime screenshots are a release gate, not marketing mockups. Before the first public release, the finalizer must capture the following from the actual plugin running in Steam and place them in `docs/images/`:
+Known limits:
 
-1. `desktop-library.png` - Desktop trophy library
-2. `game-trophies.png` - Game trophy detail page
-3. `game-pack-overrides.png` - Game-specific trophy pack customization
-4. `big-picture-home.png` - Big Picture trophy home
-5. `trophy-toast.png` - Real trophy notification
-6. `steam-deck-gaming-mode.png` - Physical Steam Deck Gaming Mode
+- On the tested Mac, Terraria's own Shift+Tab overlay did not open. A delayed trophy notification was audible and rendered on the desktop, but **no in-game visual was confirmed**. The overlay-injection failure remains unresolved.
+- Fresh imports cannot reconstruct old global rarity or missing unlock dates. Past completion of an expanded achievement catalogue requires evidence, not guesswork.
+- Desktop dashboard shelf rearrangement, a full theme editor, polished backup/import UI, friends-comparison acceptance and physical Deck validation are not finished promises in this RC.
+- Steam updates may break private UI integration. Keep backups and expect compatibility fixes.
 
-See [`docs/images/README.md`](docs/images/README.md) for the capture contract. The public README should show those images only after they exist and correspond to a tested build.
+Running a prebuilt plugin on a compatible host does **not** require Node, Python, a Steam Web API key or a separate SteamTrophies account. Development tools are needed only for source builds. Never enter Steam credentials into a pack or issue report.
 
-## Trophy system
+## Windows PC installation
 
-SteamTrophies classifies each real Steam achievement by global unlock percentage. Defaults are configurable but intentionally conservative:
+1. Close games and fully exit Steam, including its notification-area process.
+2. Follow the [official Millennium installation guide](https://docs.steambrew.app/users/getting-started/installation), using its signed Windows installer. Avoid third-party mirrors.
+3. Complete the installer for your actual Steam installation, then start Steam.
+4. Confirm **Steam → Millennium → Plugins** is available.
+5. Check the host release notes for modern Lua/Starlight `.star` support. This RC cannot be installed into an incompatible legacy runtime.
+6. Follow [Install the SteamTrophies package](#install-the-steamtrophies-package) below, using the `plugins` folder under your actual **modern Millennium installation root**. Do not assume an older `%STEAM%/plugin` directory applies.
 
-| Trophy | Default global unlock rate |
-| --- | ---: |
-| Gold | 5% or lower |
-| Silver | More than 5%, up to 20% |
-| Bronze | More than 20% |
-| Platinum | Synthetic, all real achievements earned |
+If the Millennium menu is missing, fix the host first using its [troubleshooting guide](https://docs.steambrew.app/users/getting-started/troubleshooting). Do not delete game or trophy data to repair host installation.
 
-When an achievement is earned, SteamTrophies freezes both the awarded tier and the global rarity seen at award time. If a game's global statistics later drift, the historical trophy does not quietly change from Gold to Silver.
+## Linux installation
 
-The Mac adapter obtains percentages from Valve's public global-achievement endpoint; the local client `flAchieved` field is not trusted because this build returns placeholder zeroes. Missing rarity is shown as unknown (with a provisional Bronze fallback), never as 0%. Existing zero-source imports can be corrected with **Repair cached rarity**. This refreshes metadata on existing shards, preserving unlocks, dates, Platinum, and customizations; it does not reimport achievements. Verified award tiers remain frozen on later rarity drift. Current percentages cannot reconstruct historical global rarity at the actual unlock date.
+1. Use a native Steam installation supported by Millennium. Its public installation guide excludes Flatpak, Snap and ARM Linux installations.
+2. Exit games and Steam. Follow the current [official Linux instructions](https://docs.steambrew.app/users/getting-started/installation): Arch and NixOS have distribution-specific routes; other supported distributions use the upstream installer. Inspect downloaded scripts before executing them. Do not run Steam as root.
+3. Start Steam and verify **Steam → Millennium → Plugins**, then confirm modern `.star` support.
+4. Follow the package instructions below. The modern Linux plugin directory is `${XDG_DATA_HOME:-~/.local/share}/millennium/plugins/` unless your host overrides it.
 
-If a developer later removes an achievement from Steam, previously earned trophy history is retained as retired history. Removed locked achievements are not fossilized into the library.
+For packaging-specific trouble, consult [upstream discussions](https://github.com/SteamClientHomebrew/Millennium/discussions). The [NixOS community thread](https://github.com/SteamClientHomebrew/Millennium/discussions/832) illustrates changing packaging/maintenance; old forum commands are not guaranteed installation recipes for today's host.
 
-## Major features
+## macOS installation
 
-### Fast large-library browsing
+### Experimental host prerequisite
 
-- Compact warm library index for instant UI paint.
-- Per-game shards so one giant JSON document is never required.
-- Explicit, resumable discovery for libraries with thousands of titles. Startup loads the saved library only; use **Find new games** to scan.
-- Bounded refresh concurrency, retry backoff and cancellation.
-- Local corruption recovery from validated shards before any network access.
-- Virtualized game lists with accessibility-aware row sizing.
-- Normal library hides untouched 0% games by default.
+As checked September 8, 2026, the public Millennium installation guide documents Windows and Linux, **not a production Mac installer**. Local SteamTrophies testing used a source-built experimental Millennium host and a dedicated **Steam Millennium.app** launcher. The host, launcher and their local compatibility changes are **not bundled in this repository**.
 
-The permanent benchmark fixture uses **2,500 games and 100,000 achievements** and is enforced by `npm run bench`.
+If you do not already have a compatible experimental host, the `.star` file alone cannot add Mac support. Advanced developers must first follow the [upstream project](https://github.com/SteamClientHomebrew/Millennium) and its [platform build instructions](https://github.com/SteamClientHomebrew/Millennium/blob/main/.github/docs/BUILDING.md), recording the exact revision tested. There is no verified one-click stock-Mac install to promise here. Do not disable SIP, Gatekeeper, antivirus or signature verification to make it load.
 
-### Trophy Projects
+### Install on an existing compatible Mac host
 
-Keep up to three current completion projects and optionally target exact locked trophies. Projects can appear as their own shelf or collection without filling the normal cabinet with every untouched game in your Steam library.
+1. Fully quit games and Steam, not just its window.
+2. Back up an existing installation as described below.
+3. Download and verify the `.star` using the next section.
+4. In Finder, choose **Go → Go to Folder…**, then enter `~/Library/Application Support/Millennium/plugins/`.
+5. Copy `dev.steamtrophies.client.star` directly into that directory.
+6. Start Steam through the launcher required by your host. On the tested setup this is **Steam Millennium.app**, not the ordinary Steam launcher.
+7. Enable **Steam Trophies** in **Steam → Millennium → Plugins**; restart if requested.
+8. Open the trophy button beside your profile, check the gear/settings screen, then follow first-run discovery below.
 
-### Custom trophy resource packs
+Mac trophy data lives separately at `~/Library/Application Support/SteamTrophies/`. Replacing the plugin is not an instruction to reset that directory.
 
-SteamTrophies ships with several built-in visual packs and supports user-created data-only packs.
+## Install the SteamTrophies package
 
-Override precedence is:
+These steps apply to a compatible modern Millennium host on Windows, Linux or experimental macOS.
 
-```text
-Exact achievement
-  -> game tier override
-  -> game pack
-  -> global pack
-  -> built-in Classic fallback
+### Download and verify
+
+Open this repository's [Releases](https://github.com/lydia1204/SteamTrophies/releases), choose the explicitly marked prerelease, and read its limitations. Download **`dev.steamtrophies.client.star`** and **`SHA256SUMS.txt`** from the same release.
+
+GitHub's automatic **Source code (zip/tar.gz)** downloads are not installable plugins. Do not rename a ZIP to `.star`, unzip the `.star`, install it as a theme, or put it in Decky.
+
+Calculate the SHA-256 in the download folder and compare the entire value with `SHA256SUMS.txt`:
+
+```powershell
+# Windows PowerShell
+Get-FileHash .\dev.steamtrophies.client.star -Algorithm SHA256
 ```
 
-A user can therefore make one game use a completely different trophy style, override only its Gold trophies, or assign a one-off custom emblem to one specific achievement.
-
-Custom packs can provide:
-
-- Bronze, Silver, Gold and Platinum icons
-- Named one-off trophy assets
-- Per-tier WAV, OGG or MP3 trophy sounds
-- Preview and attribution metadata
-- Recommended surfaces and tags
-
-User packs are validated before installation. They reject traversal, symlinks, undeclared files, executable masquerading, oversized payloads and absurd decoded image dimensions.
-
-Start with [`examples/trophy-pack-template`](examples/trophy-pack-template) and read [Resource Packs](docs/RESOURCE_PACKS.md).
-
-### Game-specific override UI
-
-Each game can expose a Trophy Icons panel where users can:
-
-- select a pack only for that game
-- override Bronze, Silver, Gold or Platinum individually
-- select named one-off icons for exact achievements
-- preview resolved tier art
-- reset back to inherited defaults
-- reveal the original authoring folder
-- reveal SteamTrophies' managed copy
-- re-import an updated source pack
-
-### Themes and accessibility
-
-The UI uses semantic `--stt-*` variables and stable `data-stt-*` hooks rather than hard-coded appearance assumptions. Built-in foundations currently include Midnight, OLED Black, Steam Blue and High Contrast.
-
-Accessibility state is separate from theme state and includes:
-
-- text scaling up to 200%
-- trophy/icon scaling up to 200%
-- reduced motion
-- high-contrast override
-- focus diagnostics
-
-A future visual theme editor can therefore manipulate an existing token system instead of rewriting finished components.
-
-### Big Picture and controller use
-
-Big Picture has a dedicated shell with controller-focusable shelves rather than a scaled desktop overlay. Current architecture includes:
-
-- Trophy Projects
-- Nearly Complete
-- Recent Trophy Activity
-- Completed Games
-- All Trophy Games
-- trophy totals
-- active resource packs
-- per-surface layout order
-- GamePad/Desktop UI-mode switching through one isolated compatibility bridge
-
-No important Big Picture interaction should depend on hover, right-click or precise pointer dragging.
-
-### Trophy notifications
-
-Unlock notifications support:
-
-- Bronze, Silver, Gold and Platinum presentations
-- positions and duration
-- pack-provided sounds
-- volume
-- quiet hours, including overnight ranges
-- reduced-motion behavior
-- Platinum celebration behavior
-- preview/test buttons
-- bounded simultaneous toasts
-- audio cooldown and burst coalescing
-
-Every trophy event is retained even when a burst is visually or audibly condensed.
-
-First-time game imports record history silently, without toast or sound playback. Metadata-only rarity repair is also silent.
-
-### Layout customization
-
-Desktop, Big Picture and Deck surfaces maintain independent layout state over stable widget IDs. Widgets can be shown, hidden and reordered without changing Trophy Core semantics.
-
-Current limitation: Big Picture consumes shelf order/visibility. The desktop list does not yet consume the saved dashboard layout configuration; desktop redesign and wiring remain pending. Do not treat saved settings as proof the desktop layout changed.
-
-## Platform status
-
-| Platform | Development / tests | Live plugin target | Status at this RC |
-| --- | --- | --- | --- |
-| Windows 10/11 | Yes | Millennium | Primary live target, runtime gates pending |
-| Desktop Linux | Yes | Millennium | Primary live target, runtime gates pending |
-| Steam Deck Desktop Mode | Yes | Millennium/Linux | Same underlying Linux constraints |
-| Steam Deck Gaming Mode | Yes | Installable Decky package over shared storage/core semantics | Package build passes; physical-device gates pending |
-| macOS | Yes | Upstream-dependent | Build/test/storage-path compatible; do not claim current Millennium injection support until upstream supports it and it is tested |
-
-See [Platform Matrix](docs/PLATFORM_MATRIX.md) for the detailed device/runtime matrix.
-
-## Installation
-
-### End users
-
-**Do not treat this RC source tree as a signed public release yet.** The finalizer should produce the exact release artifact after the live runtime gates pass.
-
-Once released, prefer the supported plugin manager/database path for the host rather than downloading random repackaged binaries from third-party mirrors.
-
-### Windows with Millennium
-
-1. Install a current supported Millennium release for Steam.
-2. Fully restart Steam after Millennium installation if required by Millennium.
-3. Install the published SteamTrophies package through its supported plugin installation flow.
-4. Open SteamTrophies and choose **Find new games** to start first-run discovery. Restarting Steam does not start a scan.
-5. Open **SteamTrophies -> Diagnostics** if the trophy entry does not appear.
-
-For source development, see [Build from source](#build-from-source).
-
-### Linux with Millennium
-
-1. Use a Millennium-supported native Steam installation.
-2. Install the current supported Millennium release.
-3. Install the published SteamTrophies package through the normal plugin flow.
-4. Restart Steam if requested.
-5. Choose **Find new games** for first-run achievement discovery; subsequent startups use the saved library without automatically scanning.
-
-Avoid claiming support for a Steam packaging format that Millennium itself does not currently support. If Steam or Millennium is installed through an unusual containerized distribution, verify upstream support first.
-
-### Steam Deck Gaming Mode
-
-The repository contains a buildable Decky plugin under `decky/`. It reads the shared earned-only trophy index, exposes controller-focusable summary/recent-game views, and reports storage health without adding privileged operations. Build it with:
+```bash
+# macOS
+shasum -a 256 dev.steamtrophies.client.star
+```
 
 ```bash
-npm ci --ignore-scripts
+# Linux
+sha256sum dev.steamtrophies.client.star
+```
+
+A matching hash detects corruption/changes; it is **not a publisher signature or a safety guarantee**. This candidate is unsigned. If the host requires signed packages, wait for an approved distribution rather than bypassing that policy.
+
+### Copy and enable
+
+1. Fully exit Steam. For an update, back up the current plugin and data first. Keep backups outside the active plugin folder to avoid duplicate plugin IDs.
+2. Copy the single `.star` directly into your host's confirmed plugins directory:
+
+| Modern host | Plugin destination |
+| --- | --- |
+| Windows | `plugins` beneath the actual Millennium installation root; consult your host's configured location. |
+| Linux | `${XDG_DATA_HOME:-~/.local/share}/millennium/plugins/` |
+| Experimental macOS | `~/Library/Application Support/Millennium/plugins/` |
+
+These paths follow [upstream environment configuration](https://github.com/SteamClientHomebrew/Millennium/blob/main/src/system/environment.cc); the [modern loader](https://github.com/SteamClientHomebrew/Millennium/blob/main/src/engine/plugin_manager.cc) discovers `.star` files directly. Older [filesystem documentation](https://docs.steambrew.app/users/getting-started/structure) describes a different host generation. Custom locations override the examples.
+
+3. Start Steam using the host's required launch path.
+4. Enable **Steam Trophies** / `dev.steamtrophies.client` in Millennium's Plugins screen and restart if requested.
+5. Verify the trophy button near your Steam profile and its gear/settings screen.
+
+The [official addon manager guide](https://docs.steambrew.app/users/guides/installing-addons) describes directory-ID installs for **published** plugins. SteamTrophies is not published there yet; entering its ID into that installer is not a working shortcut for this RC. If the file is not listed, check format, path and host compatibility before copying it into unrelated folders.
+
+## Steam Deck and Decky setup
+
+**Choose the correct adapter.** Millennium serves Steam Desktop / its own Big Picture surface; Decky Loader serves Gaming Mode. Their packages are not interchangeable. This RC's Decky panel displays totals, up to eight recent games, a local-state refresh and storage health. It does **not** implement the desktop settings/customization UI, game-detail navigation, discovery or real-time trophy toasts. Do not expect those features just because the shared project contains them.
+
+### 1. Install Decky Loader
+
+1. On the Deck, open **Steam → Power → Switch to Desktop**.
+2. Open the [official Decky Loader repository](https://github.com/SteamDeckHomebrew/decky-loader#installation) and download its linked installer. Use the official file, not a repackaged mirror.
+3. Move it to the desktop, ensure it has the `.desktop` filename (not an added `.download` suffix), then run it and follow the installer's administrator prompts.
+4. Choose the stable loader unless a documented compatibility requirement calls for prerelease.
+5. Return to Gaming Mode and open the **… Quick Access** menu. Confirm the Decky plug icon appears.
+
+Follow [Decky's current installation guide](https://wiki.deckbrew.xyz/en/user-guide/install) if prompts differ. Do not disable SteamOS filesystem protections or change permissions recursively to install this plugin.
+
+### 2. Obtain or build a Decky-format package
+
+SteamTrophies is not in the Decky store. The candidate provides **`SteamTrophies-Decky-0.4.0-rc.1.zip`** on the Releases page; verify its entry in `SHA256SUMS.txt` using the same hash commands as above, substituting the ZIP filename. Read its device limitations. To build your own, use the commands below and [the Decky template conventions](https://github.com/SteamDeckHomebrew/decky-plugin-template). Node/npm are needed on the **build machine**, not for loading the finished ZIP.
+
+From a checked-out repository, after `npm ci --ignore-scripts`:
+
+```bash
 npm run decky:typecheck
 npm run decky:build
 python -m compileall -q decky
 ```
 
-The output is `decky/dist/index.js`; package it together with `decky/plugin.json` and `decky/main.py` using the current Decky Loader ZIP layout. Before a public release, the finalizer must:
-
-1. package the Decky plugin using the then-current Decky template and `@decky/ui`
-2. test installation through a current Decky Loader build
-3. complete the controller-only runtime gates
-4. test native 1280x800 plus docked external-display layouts on physical hardware
-5. verify sleep/resume and offline behavior
-
-Until those gates are complete, the Decky package is an installable release candidate rather than a production-ready public binary.
-
-### macOS
-
-The repository supports macOS development and uses:
+Create a ZIP with **one top-level directory**, containing only these release files (do not zip the whole repository or `node_modules`):
 
 ```text
-~/Library/Application Support/SteamTrophies/
+SteamTrophies/
+  plugin.json        from decky/plugin.json
+  package.json       from decky/package.json
+  main.py            from decky/main.py
+  dist/
+    index.js         from decky/dist/index.js
 ```
 
-for local data when running on macOS.
+The package includes its version metadata and does not require a pip dependency install. This layout/build is not physical-device acceptance; the [Deck runtime gates](docs/RUNTIME_RELEASE_GATES.md) still apply.
 
-However, live Steam client injection depends on the current host project's macOS support. Building or testing the source on a Mac does **not** by itself prove that the released Millennium runtime can load it into Steam. The final public documentation must reflect the actual upstream state at release time.
+### 3. Install the experimental adapter
 
-As verified on 2026-09-06, `@steambrew/starlight` 1.1.4 is the current npm release but ships only Windows x64 and Linux x64 compiler binaries. On Apple Silicon, install the exact dependency graph without lifecycle scripts and run the platform-neutral validation suite:
+In Gaming Mode, open Decky's gear/settings and its developer/local-plugin installation controls. Enable Developer Mode if your current loader requires it to expose **Install Plugin from ZIP**, then select the ZIP transferred to the Deck. Wording can vary by loader version; consult [Decky's developer guide](https://wiki.deckbrew.xyz/en/plugin-dev/getting-started). The current loader's [developer settings implementation](https://github.com/SteamDeckHomebrew/decky-loader/blob/main/frontend/src/components/settings/pages/developer/index.tsx) provides local ZIP selection. Review the plugin name/source before confirming. Do not use the `.star` file here.
+
+Decky also documents installation from a URL in Settings. A private GitHub release link is **not** an unauthenticated download URL for the Deck; prefer the local ZIP. Never paste a GitHub access token into a plugin URL or make the repository public just to bypass download authentication. If your loader exposes only URL installation, use its current documented developer deployment workflow instead of guessing a system folder or weakening permissions.
+
+### 4. Supply the saved cabinet
+
+This adapter reads the Deck user's **`~/.local/share/SteamTrophies/state/index.v1.json`** and game shards. It uses the actual Deck user home even if the loader service runs as root. Unlike the desktop Linux adapter, its current path does not follow a custom `XDG_DATA_HOME`.
+
+- Preferred same-device workflow: on a supported Desktop Mode Millennium host, run SteamTrophies discovery, exit Steam cleanly, then return to Gaming Mode. The default data path is shared.
+- Alternatively, transfer a verified, same-schema snapshot from your own desktop account using the backup/restore precautions below. Stop the plugin/loader and Steam during replacement, preserve any existing Deck data, and copy the `state` folder with its index and shards intact into the data root—not into Decky's plugin files. Use the Deck user as owner; do not run broad ownership/permission changes. This is a manual snapshot, **not automatic sync**.
+- Keep different Steam accounts' snapshots separate. Do not overwrite a populated cabinet with an empty template.
+
+Open **Steam Trophies** in Decky and choose **Refresh local trophy state**. Check totals, recent games and index/shard diagnostics. This reads saved data; it does not contact Steam to discover new achievements. **No trophy index exists yet** means desktop discovery or a valid snapshot is still required.
+
+### 5. Verify, update or remove
+
+Check controller navigation, 1280×800 layout, docked resolution, offline access and sleep/resume on the actual Deck. Report failures with SteamOS/Steam/Decky versions. Use Decky's plugin management to reload/update/uninstall this adapter; uninstalling plugin files does not automatically erase the separate trophy data. Back up first. To remove Decky itself, use its official installer/uninstall flow.
+
+## First launch and everyday use
+
+### Populate the desktop cabinet
+
+Open the trophy button → gear → **Library & data → Find new games**. Discovery can take time with large libraries and records old achievements **silently**. An empty cabinet before discovery is not necessarily broken. Later startups use the saved index; **automatic discovery is off**. Use Find new games when you want to discover more titles. Opening the menu does not start a full scan.
+
+Normal browsing omits untouched 0% games. Use **All**, **Projects**, **Nearly complete**, **Platinums** and **Search games…** to narrow the cabinet. The funnel expands sorting and **Show hidden games**.
+
+- Right-click any game row to pin/unpin or hide/restore. Pins appear blue in the top-right corner and pinned games stay first; the count remains centered.
+- To recover a hidden game, enable Show hidden games and right-click → restore, or use **Settings → Library & data → Hidden games → Show again**.
+- Click a game for its scrollable achievement list. Game actions include projects, pins, hiding, **Trophy icons** and per-game refresh. Up to three Trophy Projects can be tracked.
+- Recent artwork fills available row width, rather than stopping at ten. Larger artwork means fewer tiles fit; a game with few earned achievements naturally leaves some space.
+- Hover an achievement for trophy, name, requirement, earned date and rarity. Hover an earned Platinum for its completion evidence and blue-bordered tooltip.
+- X closes the popup. Actual clicks on surrounding Steam pages dismiss it; merely hovering Store should not. Clicking another OS application is not a guaranteed global dismissal mechanism.
+- Pointer focus should not leave keyboard outlines behind. Keyboard navigation still shows focus; selected filters intentionally retain selected styling.
+
+### Refresh is not discovery
+
+| Action | Effect |
+| --- | --- |
+| Open cabinet / restart Steam | Read cached state; no full discovery. |
+| Header refresh / **Refresh rarity and trophy tiers** | Explicitly fetch current rarity and reclassify cached trophies; preserve unlocks, dates, Platinum and customization; no unlock sounds. |
+| **Find new games** | Explicit library discovery. |
+| Refresh inside one game | Request current achievement data for that game through the adapter. |
+
+Completed status messages are dismissible/temporary. Do not start repeated scans merely because a result banner is visible. Rarity refresh cannot repair an old test's incorrect unlock date; that requires trustworthy Steam data or a reviewed backup, not an invented replacement.
+
+## Trophy rules and historical completion
+
+| Trophy | Default rule |
+| --- | --- |
+| Gold | Global unlock percentage ≤5% |
+| Silver | >5% and ≤20% |
+| Bronze | >20% |
+| Platinum | Synthetic game-completion award; not an additional Steam achievement |
+
+Unknown rarity stays unknown, with provisional Bronze presentation, **never invented 0%**. The Gold border follows this plugin's tier, not a separate rule that every achievement below 10% must be Gold. Bronze/Silver borders are optional and off by default. Reduced motion intentionally stops animated effects.
+
+Normal award handling retains the recorded tier/rarity. **Explicit rarity repair is the exception:** it recalculates cached tiers from today's verified percentages. Neither fresh import nor repair can reconstruct global rarity at an old unlock date. Unknown dates stay unknown; the import time is not substituted. Removed earned achievements may remain retired history, while removed locked achievements do not become fake permanent entries.
+
+### Platinum when a game's achievement catalogue expands
+
+Normally, earning all real achievements in the observed catalogue grants Platinum. Its original completion date and, when known, completing achievement ID are retained. Later additions do not revoke that saved award or switch its tooltip to a newer unrelated unlock. Missing or ambiguous same-second history is explained rather than guessed.
+
+For **Forager, App 751780**, the exact **`feat83` / Completionist** milestone is a reviewed historical-completion exception. An earned record can establish earlier completion even if later-added feats remain locked. It is not a name-matching heuristic applied to other games. Incomplete catalogues first imported after expansion may have no evidence of previous 100%. Opening Forager detail allows normal per-game refresh to update derived completion evidence without replaying a historical toast.
+
+## Settings reference
+
+Use the cabinet's gear. Changes save automatically; there is no Apply button.
+
+| Section | Controls |
+| --- | --- |
+| Trophy packs | Default visual pack, previews, folder import and management. Game overrides take precedence. |
+| Appearance | Portrait (default), landscape or icon artwork; six fallback-order choices; achievement size 32–72 px; optional Bronze/Silver borders; built-in theme; reduced motion; high contrast; text/trophy scales 80–200%. |
+| Notifications | Independent sound pack; toast/sound toggles; Platinum celebration; artwork; animation; local position; duration 1.5–15 s; volume; 1–6 visible toasts; audio cooldown; quiet hours; tier previews; delayed outside-window test; delivery diagnostics. |
+| Library & data | Rarity repair, explicit discovery, hidden-game restoration, pins and project tracking. |
+| Diagnostics | Counts/schema; temporarily disable external packs/themes; responsive/focus debugging. These are troubleshooting aids, not full host health certification. |
+| Layout, Big Picture only | Shelf visibility/order. Unfinished desktop dashboard layout controls are not exposed. |
+
+Artwork tries the selected style first, then your fallback order, skipping missing candidates without cycling. Missing portraits can fall back to landscape or a **contained** square icon instead of stretching it. Landscape uses Valve's store-header proportions, not a forced 16:9 crop. Some games lack art; offline/CDN failures can also trigger fallback.
+
+Themes include Midnight, OLED Black, Steam Blue and High Contrast. Text scale, trophy scale and achievement-art size are independent. Adjust them before changing system display scaling.
+
+The per-achievement **Icon** editor button is deliberately hidden/deprecated in desktop rows; its code and existing saved overrides remain supported. Use the game's **Trophy icons** page for exposed game/pack/tier controls. This is not a reason to delete customization.
+
+## Trophy artwork and sound packs
+
+Built-ins: `builtin.classic`, `builtin.crest`, `builtin.minimal`, `builtin.crystal`. Classic uses the supplied trophy art. Packs affect presentation, not achievement state or rarity calculations.
+
+1. Obtain a trusted pack. If distributed as ZIP, extract it to a normal folder first. Direct `.sttpack` archive import is not implemented.
+2. Choose **Settings → Trophy packs → Import pack folder** and select the folder containing `manifest.json`.
+3. Fix validation errors rather than bypassing them. Choose the installed pack globally or on a game's Trophy icons page.
+4. Keep your authoring folder. The plugin uses a managed copy; re-import to apply source edits.
+
+Priority: **exact achievement → game tier → game pack → global pack → built-in Classic**. Missing/removed packs fall through to valid candidates.
+
+For your own pack, start with [the template](examples/trophy-pack-template) and [complete specification](docs/RESOURCE_PACKS.md). V1 requires four tier images and optionally declares `toast.bronze`, `toast.silver`, `toast.gold`, `toast.platinum` sounds.
+
+- Images: PNG/JPEG/WebP; user SVG/code/CSS is rejected.
+- Sounds: valid WAV/OGG/MP3. Renaming a file does not convert it.
+- To keep different sound and artwork packs, import a valid pack containing sounds and choose it under **Notifications → Sound pack**. There is no arbitrary-MP3-folder importer: audio must be declared in a valid pack manifest.
+- Individual assets: up to 4 MiB; total content: up to 64 MiB; decoded image dimensions/pixels and file counts are also bounded.
+- Symlinks, traversal, reserved built-in IDs, undeclared files and executable masquerading are rejected. Exclude `.DS_Store`, authoring files and unrelated exports.
+- Include attribution and distribute only art/audio you have rights to use.
+
+Developer validation:
 
 ```bash
+npm run pack:validate -- /absolute/path/to/pack-folder
+```
+
+## Notifications and the Steam overlay
+
+Local previews and native Steam delivery are separate. A local preview succeeding does not prove that a game can display overlays.
+
+1. Enable toasts/sound, check volume and quiet hours, then test each tier inside the cabinet. Tests change no achievements.
+2. Choose **Test outside window in 10 seconds**, close Trophies and check the Steam desktop for both visual and audio.
+3. Repeat and return to a game. Independently confirm Steam's own overlay opens with its configured shortcut, usually Shift+Tab.
+4. Read **Recent notification delivery**. Queued events or a desktop renderer are not proof of in-game visuals.
+5. Finally test a genuinely new achievement during normal play. First import and metadata repair are silent; do not fabricate unlocks for testing.
+
+Animations: **Slide, Fade, Rise, Zoom, Bounce, Flip, None**. Reduced motion overrides animation. Position applies inside the trophy window; **Steam owns native placement outside it**. The plugin does not globally mute Steam achievement sounds, so cues can overlap.
+
+If audio works but in-game visuals do not, check both global **Steam Settings → In Game** and the game's **Properties → General** overlay switch. Restart the game after changes and verify the shortcut. Consult [Valve's overlay requirements](https://partner.steamgames.com/doc/features/overlay) and [troubleshooting](https://help.steampowered.com/en/faqs/view/3978-072C-18DF-FBF9). A checked global setting alone does not establish successful overlay injection.
+
+If Steam's own overlay fails, compare another game and record OS/game/renderer details before changing launch options. The known Mac/Terraria case is in [Desktop QA](docs/DESKTOP_QA_2026-09-08.md). A [Terraria community discussion](https://steamcommunity.com/app/105600/discussions/0/3823033617223453459/?l=english) reports similar symptoms, not a confirmed diagnosis for every Mac. Do not disable OS security, override Steam's disabled-overlay policy or delete trophy data to troubleshoot it.
+
+## Backups, updates, rollback and removal
+
+### Data roots
+
+| OS | Trophy data, separate from the plugin file |
+| --- | --- |
+| Windows | `%LOCALAPPDATA%\SteamTrophies\`, fallback `%APPDATA%\SteamTrophies\` |
+| Desktop Linux | `${XDG_DATA_HOME:-~/.local/share}/SteamTrophies/` |
+| macOS | `~/Library/Application Support/SteamTrophies/` |
+| Decky | `<Deck user home>/.local/share/SteamTrophies/` |
+
+```text
+SteamTrophies/
+  state/
+    index.v1.json             compact cabinet
+    games/                   achievement/award records
+    events/                  trophy history
+    customization.v1.json    packs, pins, hidden games and preferences
+    discovery.v1.json        discovery progress
+    quarantine/              invalid state preserved for investigation
+  customization/packs/       managed imported artwork/audio
+  cache/                     rebuildable assets
+```
+
+Other metadata/settings and `.bak` files may exist. Back up the whole root, not only selected filenames from this example.
+
+### Back up before an update
+
+Fully quit Steam (and stop the Decky plugin/loader for a Deck snapshot). Copy the **entire data root** into a timestamped backup outside the live data/plugin directories. Keep `state` and `customization/packs` together. Also copy the installed plugin and record its version/hash. Inspect the backup before replacing anything. Caches are disposable, but a complete local snapshot can include them for convenience.
+
+An index or `.bak` alone is not a full backup of custom packs and historical evidence. Do not upload personal state with normal bug reports. Prefer syncing a closed-app snapshot/export over two clients writing to one live folder. Automatic multi-device synchronization and multi-account migration/isolation are not certified; preserve separate account snapshots.
+
+### Update or roll back
+
+For updates: read release notes, verify hash, exit Steam, back up, replace **only** this plugin file, and relaunch through the correct host. Verify saved pins/hidden games/packs. Updating is not a request to refresh or reimport the library.
+
+For rollback: preserve the current state first. Restore the previous plugin without changing data if it supports the current schema. If schemas differ, restore the **matching complete snapshot and plugin together**. Move current data aside recoverably before restoring; do not merge arbitrary shards from different snapshots or delete the only copy.
+
+`scripts/recover-local-state.cjs` is an advanced macOS discovery/index recovery tool requiring an explicit reviewed backup archive. It is not an installer, complete restore utility, or speculative fix for a wrong achievement date. Ask a maintainer before using it on historical test damage.
+
+### Disable or uninstall
+
+Disable Steam Trophies in Millennium, fully exit Steam, and move **only its `.star`** outside the active plugins folder. Keep the separate data root for later reinstall. For Decky use its plugin management. To intentionally erase local history too, first verify a backup, then move the exact SteamTrophies data root to OS trash. Historical rarity/completion evidence may not be recoverable from Steam.
+
+Never remove Steam libraries, userdata, other plugins or whole host directories as a SteamTrophies uninstall step. Remove Millennium using [upstream uninstall instructions](https://docs.steambrew.app/users/parting-ways/uninstall), or Decky through its official installer, only if you also want to remove that host.
+
+## Troubleshooting
+
+| Symptom | Safe checks |
+| --- | --- |
+| No host menu | Fix Millennium/Decky installation or launcher first; follow upstream troubleshooting. |
+| Plugin not listed | Correct package format, compatible host/signature policy, actual plugin directory, no nested source ZIP? |
+| Enabled but no trophy button | Record Steam build/channel and host version/error. Private header integration can change; preserve trophy data. |
+| Steam fails after enabling | Quit Steam, move only this plugin out, retain data, retry. If host still fails, use upstream recovery. |
+| Empty/missing games | Explicit discovery, then clear search/filters and check hidden games. Normal untouched 0% games are omitted. Decky only reads an existing index. |
+| Hidden game missing | Funnel → Show hidden games → restore; alternatively Library & data → Show again. |
+| Refresh banner remains | Dismiss the completed result; distinguish it from a running scan. Report stuck status rather than repeatedly scanning. |
+| Old imports all Gold / wrong tiers | Back up, then explicitly refresh rarity/tiers. This preserves unlock dates, including incorrect dates already in source data. |
+| Old game has implausible recent date | Compare trustworthy Steam history/backup. Rarity repair is not date repair; never guess replacement timestamps. |
+| Gold shimmer is static | Check reduced motion and actual tier; Gold threshold is ≤5%, not every achievement below 10%. Report if Gold remains static with motion enabled. |
+| Platinum lacks exact achievement | Missing/ambiguous historical evidence is stated honestly. See retained completion and Forager rules. |
+| Artwork looks wrong | Change style/fallback, check asset availability/network. Missing art should contain fallback icons, not stretch them. |
+| Refresh/funnel stays outlined | Distinguish selected filters from keyboard focus; report pointer/Tab sequence, theme and expanded/collapsed state. |
+| Hovering Store closes popup | Regression: actual clicks, not hover, should dismiss. Record exact host/Steam versions. |
+| Scrolling/overlap problems | Test normal text/art scales and external themes disabled; record window dimensions/display scaling. |
+| Pack rejected | Check manifest, signatures, undeclared files, symlinks and size limits; run validator. |
+| Audio but no toast | Use local/desktop/in-game tests separately; verify actual Steam overlay and delivery diagnostics. |
+| Corrupt state | Preserve data/quarantine. Local validated shards/backups support recovery; seek review before resets or manual edits. |
+
+### Report a useful bug
+
+Include plugin version/commit, OS/architecture, Steam build and Stable/Beta channel, host version/revision, exact steps, expected/actual results and relevant screenshots. For UI add window size/scaling, theme, artwork settings and input method. For notifications add game App ID, whether Steam's own overlay works, and Recent notification delivery output.
+
+Modern Millennium logs normally live under its install root's `logs` on Windows, `${XDG_STATE_HOME:-~/.local/state}/millennium/logs` on Linux, or `~/Library/Logs/Millennium/logs` on Mac; confirm your host's configured location. Share **small redacted excerpts**, not complete Steam logs, personal data roots or account/session secrets. Use [Issues](https://github.com/lydia1204/SteamTrophies/issues) for ordinary bugs and [SECURITY.md](SECURITY.md) for vulnerabilities.
+
+## Privacy and security
+
+Opening the cabinet uses local cached state. Discovery/refresh reads Steam achievement data; rarity and artwork may contact Valve services. This does not imply Steam itself is offline. No project-owned server/account is required to render the cabinet.
+
+The **plugin** contains executable code and runs in a sensitive host: install trusted releases only. **User trophy packs** are different—bounded, validated data bundles, not executable plugins. A checksum or validator is not a guarantee against every vulnerability.
+
+Protections include bounded input/RPC validation, numeric game IDs, atomic writes, constrained backup/quarantine handling, owned host hooks with cleanup, network host checks and hostile-pack rejection. Review [the threat model](docs/SECURITY.md). Never expose Steam's remote-debugging endpoint to a network, bypass protections to load an unsigned package, or commit personal history/API keys.
+
+No Valve endorsement, anti-cheat approval, universal compatibility or guarantee against account consequences is claimed. Respect Steam/game policies and do not use unsupported injected clients with games that prohibit them.
+
+## Build from source
+
+Requirements: Git; Node **22 or 24** recommended (declared `>=22 <27`); npm; Python 3 available as `python`; a Lua/LuaJIT parser for backend validation; compatible Millennium/Starlight for actual packaging/runtime. Starlight is pinned to **1.1.4** and the real lockfile is committed.
+
+```bash
+git clone https://github.com/lydia1204/SteamTrophies.git
+cd SteamTrophies
 npm ci --ignore-scripts
 npm run release:validate
 ```
 
-`npm run prepare` and `npm run build` remain blocked on native macOS until upstream publishes a compatible Starlight binary. CI still exercises all platform-neutral checks on macOS and performs the production Starlight packaging smoke test on Linux.
+This runs platform-neutral checks without an unsupported host-tool lifecycle. If `python` is missing, configure your Python environment before retrying; that is not a plugin runtime failure.
 
-## Build from source
+### Millennium packaging
 
-### Prerequisites
-
-- Git
-- Node.js 22 or 24 LTS recommended for this RC
-- npm
-- a current TypeScript-compatible development environment
-- current Steam/Millennium tooling for real runtime integration
-- Python 3 for the Decky-side syntax/build workflow
-- a Lua/LuaJIT parser or compiler for final backend validation
-
-Clone the repository and install the exact dependency graph:
-
-```bash
-git clone <your-fork-or-project-url>
-cd SteamTrophies
-npm install
-```
-
-On a platform not currently supported by the Starlight compiler binary, use `npm install --ignore-scripts` and follow the macOS note above.
-
-The release repository should commit the real generated `package-lock.json`. Do not manufacture one by hand.
-
-Prepare Starlight language/tooling support:
+Close Steam before building against an installed development host: this project enables reload behavior, and Starlight may contact a running host even with a separate output folder.
 
 ```bash
 npm run prepare
-```
-
-Run the full offline engineering gate:
-
-```bash
-npm run release:validate
-```
-
-Build the Millennium package:
-
-```bash
+npm run lua:validate
 npm run build
 ```
 
-During development:
+`millennium.toml` uses `output_path = "auto"`. Read the reported destination; it may be the detected host's plugins folder, not `dist`. The checked toolchain also supports explicit staging:
 
 ```bash
-npm run dev
+npm run styles:generate
+npx starlight --release --of ./dist pack
+npx starlight verify ./dist/dev.steamtrophies.client.star
 ```
 
-## Validation commands
+Unsigned package verification is not an official distribution signature. See [Millennium configuration](https://docs.steambrew.app/plugins/structure/config). `npm run dev` starts the intentional live-development watcher; end users do not need it.
+
+### Mac compiler caveat
+
+The pinned npm Starlight 1.1.4 package supplies Windows/Linux compilers, not a native Apple Silicon executable. `npm ci --ignore-scripts` and offline checks work independently; `prepare`/`build` need a separately built compatible native compiler on Mac. The local candidate used one with matching SDK types. That toolchain/experimental host is not made reproducible simply by cloning this plugin. A successful Mac offline test does not prove a stock-Mac install works.
+
+For Decky builds and package layout, use [Steam Deck and Decky setup](#steam-deck-and-decky-setup), not the Starlight commands.
+
+## Validation, contributing and license
+
+`release:validate` includes core/frontend checks, Decky checks/build, CEF compatibility, automated tests, resolution fixtures, security/hostile-pack gates, QA ledgers, repository checks and a **2,500-game / 100,000-achievement** benchmark. Lua and actual host SDK/runtime checks are separate.
 
 ```bash
-npm run typecheck:core
-npm run typecheck:frontend:offline
-npm run check:cef85
 npm test
-npm run resolution:test
+npm run lua:validate
 npm run security:audit
 npm run security:pack-corpus
-npm run gamer:qa
+npm run resolution:test
 npm run pack:validate -- examples/trophy-pack-template
 npm run repo:validate
 npm run bench
-npm run release:validate
-```
-
-Runtime release gates are separate by design:
-
-```bash
 npm run runtime:gates
 npm run runtime:gates:require-pass
 ```
 
-The second command must not pass before public release unless every required live gate contains real evidence.
+**`runtime:gates:require-pass` should fail while evidence is pending.** The ordinary report succeeding only means the ledger is well-formed, not that live tests passed. Do not weaken this distinction to get a green release badge.
 
-## Device and resolution compatibility
+CI is configured for Windows, Linux and macOS on Node 22/24 with a Linux package job. Check [actual Actions results](https://github.com/lydia1204/SteamTrophies/actions) for the revision; configured jobs are not proof of passing runs.
 
-SteamTrophies lays out against its **actual measured CSS-pixel container**, not a guessed monitor resolution. The automated matrix currently includes 21 environments from a 360px emergency-narrow viewport through handheld-class layouts, Deck, 720p/1080p/4K Big Picture, common laptops, 21:9, 32:9, 5K2K and Retina-class stress cases.
+Read [CONTRIBUTING.md](CONTRIBUTING.md). Keep shared trophy semantics independent from host integration; preserve existing history; avoid scanning on menu open; never weaken pack validation or claim unobserved live results. Screenshots are not fabricated—see [gallery requirements](docs/images/README.md).
 
-A G9-class 5120x1440 display deliberately caps useful content columns rather than stretching trophy cards across the entire horizon.
+Further documentation:
 
-The CSS compatibility gate also protects the renderer floor used by Steam's current embedded UI. See [Responsive Compatibility](docs/RESPONSIVE_COMPATIBILITY.md).
+- [Architecture](docs/ARCHITECTURE.md), [customization architecture](docs/CUSTOMIZATION_ARCHITECTURE.md)
+- [Storage](docs/STORAGE.md), [security](docs/SECURITY.md), [packs](docs/RESOURCE_PACKS.md)
+- [Platform matrix](docs/PLATFORM_MATRIX.md), [Big Picture](docs/BIG_PICTURE.md), [responsive compatibility](docs/RESPONSIVE_COMPATIBILITY.md), [performance](docs/PERFORMANCE.md)
+- [Latest desktop QA](docs/DESKTOP_QA_2026-09-08.md), [settings QA](docs/SETTINGS_QA_2026-09-07.md), [runtime release gates](docs/RUNTIME_RELEASE_GATES.md)
+- [Candidate release notes and artifact hashes](docs/RELEASE_NOTES_0.4.0-rc.1.md)
 
-## Data and privacy
+Older pass reports describe dated snapshots, not a promise that every roadmap feature is shipped. This README and the latest QA report clarify current behavior.
 
-SteamTrophies is designed local-first.
-
-Primary data locations:
-
-```text
-Windows: %LOCALAPPDATA%\SteamTrophies\
-         fallback %APPDATA%\SteamTrophies\
-
-Linux:   ${XDG_DATA_HOME:-~/.local/share}/SteamTrophies/
-
-macOS:   ~/Library/Application Support/SteamTrophies/
-```
-
-Durable data includes trophy award history and user customization. Disposable caches are designed to be rebuildable.
-
-Friend comparison should prefer permitted in-client Steam data. If a Steam Web API fallback is used, API keys must stay out of renderer state, URLs, logs, backups and resource packs.
-
-SteamTrophies should not upload trophy history to a project-owned server merely to render the local UI.
-
-## Backups
-
-The storage architecture separates durable trophy history/customization from rebuildable caches so backups can target the data users actually care about.
-
-The repository includes backup/export scaffolding. Final polished backup UI is part of finalization if not already complete on the target branch.
-
-## Troubleshooting
-
-### SteamTrophies does not appear
-
-1. Confirm Steam and the plugin host are on supported builds.
-2. Restart Steam completely.
-3. Confirm SteamTrophies is enabled in the host plugin settings.
-4. Open SteamTrophies Diagnostics if the panel itself is available.
-5. If the header integration is missing but the plugin surface works, treat it as a host compatibility issue rather than deleting trophy data.
-6. Test with Steam Stable if you are currently on Steam Beta.
-
-The plugin is intentionally designed so a missing private-Steam anchor should fail closed rather than patching an unknown location.
-
-### Trophy screen opens but a game is missing
-
-By default, untouched 0% games are deliberately hidden.
-
-A game should normally appear after it has at least one earned/historical trophy. Use Trophy Projects/tracking for titles you intentionally want to surface before earning anything.
-
-### A trophy tier changed globally but mine did not
-
-That is expected. SteamTrophies freezes the tier and rarity recorded when the trophy was awarded. Current global rarity can still be displayed separately.
-
-### A custom trophy pack will not import
-
-Run:
-
-```bash
-npm run pack:validate -- /path/to/pack-folder
-```
-
-Common rejection causes include:
-
-- undeclared files
-- symlinks
-- unsupported formats
-- path traversal
-- files that have the wrong real signature for their extension
-- excessive file size
-- excessive decoded image dimensions
-- use of a reserved built-in pack ID
-
-### Steam updated and the trophy button disappeared
-
-Do not delete your trophy data. Steam's private UI can move between client builds. The header integration is intentionally isolated so the plugin can fail closed while the cached trophy cabinet remains intact.
-
-Check project releases/issues for compatibility status, and include your Steam channel/build in bug reports.
-
-### Big Picture focus is stuck or skips a control
-
-Record:
-
-- Steam Stable/Beta channel
-- operating system
-- controller type
-- exact screen and control
-- whether mouse input behaves correctly
-- a short video if possible
-
-Use the project's focus diagnostics if available.
-
-### The UI looks too large or too small
-
-Check SteamTrophies accessibility scale before changing operating-system DPI settings. SteamTrophies measures its rendered container and should adapt to Steam/Deck UI scaling.
-
-### The local index is corrupt
-
-The current storage layer validates persisted structures, keeps constrained last-known-good backups and can rebuild the compact index from valid local game shards before resorting to Steam/network work.
-
-If recovery repeatedly fails, use Diagnostics/Safe Mode and preserve the quarantine files when filing an issue.
-
-## FAQ
-
-### Does SteamTrophies replace Steam achievements?
-
-No. Steam achievements remain authoritative. SteamTrophies presents them through an additional trophy model.
-
-### Is Platinum a real Steam achievement?
-
-No. It is a synthetic SteamTrophies completion award created only when all real achievements for the game are earned.
-
-### Will Gold trophies turn into Silver later?
-
-Not after award. Historical tier and award-time rarity are frozen.
-
-### Why are most of my 0% games hidden?
-
-A 2,000-game Steam library becomes unusable if the trophy cabinet begins with 1,500 empty entries. SteamTrophies defaults to showing meaningful trophy history instead.
-
-### Can I use different trophy icons for one game?
-
-Yes. Game-level pack, per-tier and exact per-achievement overrides are part of the customization model.
-
-### Can I create my own trophy pack?
-
-Yes. Start from `examples/trophy-pack-template`, read `docs/RESOURCE_PACKS.md`, and run the validator before importing it.
-
-### Can packs execute code?
-
-No. User packs are intentionally data-only.
-
-### Do friends need SteamTrophies installed for comparison?
-
-The architecture is designed to use permitted Steam friend achievement data where available, so the long-term comparison model does not require another user to install the plugin merely to expose ordinary Steam achievement state. Live privacy/runtime behavior is still a release gate.
-
-### Does it work offline?
-
-The cabinet is local-first. Already cached trophy data, layouts, themes and customization should remain browsable offline. Refreshes naturally require Steam data when new state is needed.
-
-### Does it work on Steam Deck?
-
-The shared core and dedicated Decky/Big Picture architecture are present. Physical Gaming Mode and docked-device runtime gates must be completed before the project labels the Deck build production-ready.
-
-### Does it work on macOS?
-
-The source tree builds/tests with macOS in mind and uses the correct macOS data path. Live Steam injection depends on current upstream plugin-host support and must be stated accurately at release time.
-
-### Why not just use raw CSS for every theme?
-
-Stable semantic tokens and slots are easier to migrate, validate and keep controller-safe. Advanced styling can be layered on later without making brittle generated class names the public API.
-
-### Where should I report a security issue?
-
-Read [`SECURITY.md`](SECURITY.md). Please do not publish an exploit in a normal issue before maintainers have had an opportunity to investigate.
-
-## Architecture
-
-High-level flow:
-
-```text
-Steam achievement sources
-        |
-        v
-Steam adapters / runtime bridges
-        |
-        v
-Trophy Core
-  rarity + history + Platinum + events
-        |
-        +-------------------+
-        |                   |
-        v                   v
-Storage / recovery     Presentation models
-                            |
-             +--------------+--------------+
-             |              |              |
-          Desktop       Big Picture       Deck
-             |              |              |
-             +------ Resource / Theme / Layout ------+
-```
-
-Start with:
-
-- [Architecture](docs/ARCHITECTURE.md)
-- [Storage](docs/STORAGE.md)
-- [Security](docs/SECURITY.md)
-- [Resource Packs](docs/RESOURCE_PACKS.md)
-- [Customization Architecture](docs/CUSTOMIZATION_ARCHITECTURE.md)
-- [Big Picture](docs/BIG_PICTURE.md)
-- [Responsive Compatibility](docs/RESPONSIVE_COMPATIBILITY.md)
-- [Gamer QA Top 50](docs/GAMER_QA_TOP50.md)
-- [Runtime Release Gates](docs/RUNTIME_RELEASE_GATES.md)
-
-## Contributing
-
-Read [`CONTRIBUTING.md`](CONTRIBUTING.md) before sending a pull request. In particular:
-
-- do not put Steam private-UI selectors throughout ordinary components
-- do not move network/library work onto UI-open paths
-- do not weaken pack validation to make a sample import
-- do not replace semantic theme/layout contracts with one-off component settings
-- do not mark a live-runtime gate green without evidence
-
-## Security
-
-Security-sensitive design includes:
-
-- strict renderer/backend boundaries
-- no arbitrary shell execution for normal plugin work
-- constrained filesystem RPC
-- structural persisted-data validation
-- atomic writes and corruption quarantine
-- last-known-good local fallback
-- hostile pack validation
-- no executable user packs
-- API-key isolation
-- bounded refresh/background work
-- host-surface ErrorBoundary containment
-
-See [`SECURITY.md`](SECURITY.md) and [`docs/SECURITY.md`](docs/SECURITY.md).
-
-## Release status
-
-`npm run release:validate` is the offline engineering gate.
-
-`npm run runtime:gates:require-pass` is the live evidence gate.
-
-A release should not be described as production-ready until **both** are green against the intended host/device matrix and the real screenshots in the Gallery were captured from that tested build.
-
-## License
-
-No license is selected in this RC source tree. Before publishing, preserve any license already established in the destination GitHub repository. If none exists, the project owner must make that publication/licensing decision explicitly rather than having tooling silently invent one.
+**No project license has been selected.** Access does not grant an open-source license or redistribution rights. The owner must select a license and verify artwork/audio redistribution rights before a public release. Dependencies retain their own licenses; game imagery and trademarks belong to their owners.

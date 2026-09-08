@@ -12,7 +12,7 @@ This document separates **code/build compatibility** from **verified live host s
 | Steam Deck Desktop Mode | Millennium/Linux | Same | Supported when host stack is supported |
 | Steam Deck Gaming Mode | Decky shell | Same Trophy Core/contracts | Requires physical-device validation |
 | macOS development | Local Node/TS/Python tooling | Shared packages | Supported for development/testing |
-| macOS live Steam | Depends on current upstream host | Same intended contracts | Do not claim until upstream support and live validation exist |
+| macOS live Steam | Experimental source-built Millennium | Desktop cabinet tested locally | Not a stock/public installer guarantee; in-game overlay issue and runtime gates remain open |
 
 ## Automated viewport matrix
 

@@ -13,10 +13,11 @@ Recommended release-candidate toolchain:
 - Lua/LuaJIT parser/compiler for final backend validation
 
 ```bash
-npm install
-npm run prepare
+npm ci --ignore-scripts
 npm run release:validate
 ```
+
+Run `npm run prepare` only with a supported Starlight compiler platform, then follow the README packaging instructions. The pinned npm compiler does not include a native Apple Silicon executable. Keep Steam closed while packaging unless intentional live reload is part of your test.
 
 ## Before opening a pull request
 

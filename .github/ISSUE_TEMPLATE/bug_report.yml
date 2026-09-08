@@ -1,83 +1,42 @@
 name: Bug report
-description: Report a reproducible SteamTrophies problem
-title: "[Bug] "
-labels: [bug]
+description: Report a reproducible SteamTrophies issue without sharing private account data.
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for helping harden SteamTrophies. Please remove API keys, account secrets and unrelated personal information from logs/screenshots.
-
+        Please check the README troubleshooting section first. This is an experimental candidate.
+        Never attach account tokens, complete Steam logs, personal trophy state, or vulnerability exploit details.
+        Use SECURITY.md for sensitive reports.
   - type: input
     id: version
     attributes:
-      label: SteamTrophies version or commit
-      placeholder: 0.4.0-rc.1 / abc1234
+      label: Plugin version or commit
+      placeholder: 0.4.0-rc.1
     validations:
       required: true
-
-  - type: dropdown
-    id: platform
+  - type: textarea
+    id: environment
     attributes:
-      label: Platform
+      label: Environment
+      description: OS and architecture, Steam build/channel, Millennium or Decky version/revision; game App ID if relevant.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction and expected result
+      description: List the steps, expected behavior, and what actually happened.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Relevant evidence
+      description: Redacted screenshots or small log excerpts. For UI include scaling/theme/input; for notifications say whether Steam's own overlay works and include recent delivery diagnostics.
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy check
       options:
-        - Windows 11
-        - Windows 10
-        - Linux desktop
-        - Steam Deck Desktop Mode
-        - Steam Deck Gaming Mode
-        - macOS development/build
-        - Other
-    validations:
-      required: true
-
-  - type: input
-    id: host
-    attributes:
-      label: Millennium / Decky version
-      placeholder: Millennium 3.4.1 / Decky version
-    validations:
-      required: true
-
-  - type: dropdown
-    id: steam_channel
-    attributes:
-      label: Steam channel
-      options:
-        - Stable
-        - Beta
-        - Unknown
-    validations:
-      required: true
-
-  - type: textarea
-    id: description
-    attributes:
-      label: What happened?
-      description: Include what you expected and what actually happened.
-    validations:
-      required: true
-
-  - type: textarea
-    id: steps
-    attributes:
-      label: Reproduction steps
-      placeholder: |
-        1. Open ...
-        2. Select ...
-        3. Observe ...
-    validations:
-      required: true
-
-  - type: textarea
-    id: diagnostics
-    attributes:
-      label: Diagnostics / logs
-      description: Paste only relevant, redacted diagnostics. Never include Steam Web API keys or session secrets.
-      render: shell
-
-  - type: textarea
-    id: media
-    attributes:
-      label: Screenshots or video
-      description: Drag in sanitized screenshots/video if they help reproduce the issue.
+        - label: I removed account credentials, session tokens and unrelated personal data from this report.
+          required: true

@@ -11,7 +11,10 @@ SteamTrophies/
     events/
       YYYY-MM.ndjson
     settings.v1.json
+    customization.v1.json   (pack choices, pins, hidden games and preferences)
     discovery.v1.json       (rebuildable first-run/re-probe ledger)
+  customization/
+    packs/                 (managed imported artwork and sounds)
   cache/
     assets/
       index.v1.json
@@ -22,7 +25,8 @@ Millennium backend root:
 
 - Windows: `%LOCALAPPDATA%/SteamTrophies` (fallback `%APPDATA%`).
 - Linux: `$XDG_DATA_HOME/SteamTrophies` or `~/.local/share/SteamTrophies`.
-- macOS path is reserved conceptually as `~/Library/Application Support/SteamTrophies`, but current Millennium distribution is Windows/Linux, so macOS needs another shell/runtime unless Millennium adds support.
+- macOS: `~/Library/Application Support/SteamTrophies`. Desktop testing has used an experimental source-built Millennium host; a public production Mac installer is not established. See the current README compatibility section.
+- Decky: `<Deck user home>/.local/share/SteamTrophies`, using `decky.DECKY_USER_HOME`, not the loader service's root home. The current Decky adapter does not follow custom `XDG_DATA_HOME` values.
 
 ## Why shards instead of one giant JSON file
 
@@ -48,7 +52,9 @@ Real sizes vary with localized achievement descriptions and icon URL lengths. Im
 
 ## Backups
 
-Back up **durable state only**: index, trophy-bearing game shards, unlock events, settings, schema/version metadata. Exclude `discovery.v1.json`, asset cache, logs, temporary refresh state, and any Steam Web API secret.
+For a user-managed local backup, stop the active host and copy the **complete SteamTrophies data root**, including `state` and `customization/packs`, to a timestamped location outside the live root. Pair it with the installed plugin/version. A whole-root snapshot may include rebuildable discovery/cache data for convenience; these are not essential durable history. Do not publish these personal snapshots with bug reports.
+
+A future minimal export should include index, trophy-bearing shards, unlock history, customization/settings, managed pack assets and schema metadata; omit disposable caches, logs, temporary refresh state and secrets. An index-only or `state`-only backup does not contain imported artwork/audio packs. Do not merge random files from different snapshots during rollback; restore a coherent schema-compatible snapshot.
 
 Recommended transports later:
 
