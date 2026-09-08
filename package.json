@@ -14,7 +14,7 @@
     "bench": "npm run build:test && node bench/library-scale.cjs",
     "verify": "npm run release:validate",
     "clean": "node scripts/clean.cjs",
-    "typecheck:frontend:offline": "tsc -p tsconfig.frontendcheck.json",
+    "typecheck:frontend:offline": "npm run styles:generate && tsc -p tsconfig.frontendcheck.json",
     "decky:typecheck": "npm run typecheck --workspace steam-trophies-decky",
     "decky:build": "npm run build --workspace steam-trophies-decky",
     "decky:python": "python -m compileall -q decky",

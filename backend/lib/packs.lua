@@ -53,7 +53,7 @@ end
 
 local function allowed_audio_extension(path)
     local ext = extension(path)
-    return ext == ".wav" or ext == ".ogg"
+    return ext == ".wav" or ext == ".ogg" or ext == ".mp3"
 end
 
 local function read_binary(path, max_bytes)
@@ -155,6 +155,22 @@ local function validate_image_dimensions(path, bytes)
     assert(width * height <= MAX_IMAGE_PIXELS, "Image pixel count exceeds safe decoder budget")
 end
 
+local function valid_mp3(bytes)
+    local offset = 1
+    if bytes:sub(1, 3) == "ID3" then
+        local version = bytes:byte(4)
+        if #bytes < 14 or not version or version < 2 or version > 4 then return false end
+        local size = 0
+        for i = 7, 10 do local value = bytes:byte(i); if value >= 128 then return false end; size = size * 128 + value end
+        offset = 11 + size
+        if version == 4 and math.floor(bytes:byte(6) / 16) % 2 == 1 then offset = offset + 10 end
+    end
+    local a, b, c = bytes:byte(offset, offset + 2)
+    return offset + 3 <= #bytes and a == 255 and b and b >= 224
+        and math.floor(b / 8) % 4 ~= 1 and math.floor(b / 2) % 4 ~= 0
+        and c and math.floor(c / 16) > 0 and math.floor(c / 16) < 15 and math.floor(c / 4) % 4 ~= 3
+end
+
 local function mime_for_bytes(path, bytes)
     local ext = extension(path)
     if ext == ".png" then
@@ -175,6 +191,9 @@ local function mime_for_bytes(path, bytes)
     elseif ext == ".ogg" then
         assert(bytes:sub(1, 4) == "OggS", "OGG signature mismatch")
         return "audio/ogg"
+    elseif ext == ".mp3" then
+        assert(valid_mp3(bytes), "MP3 signature mismatch or invalid ID3 header")
+        return "audio/mpeg"
     end
     error("Unsupported pack asset type")
 end
@@ -255,7 +274,7 @@ local function read_manifest_from(path)
         for key, value in pairs(manifest.sounds) do
             assert(allowed_sounds[key], "Unknown pack sound key")
             local rel = normalize_relative(value)
-            assert(allowed_audio_extension(rel), "Pack sounds must be WAV or OGG")
+            assert(allowed_audio_extension(rel), "Pack sounds must be WAV, OGG or MP3")
             manifest.sounds[key] = rel
         end
     end
@@ -461,10 +480,11 @@ function M.bundled_asset_data_url(relative_path)
     local trophy_tier = relative_path:match("^resources/packs/[a-z0-9_%-]+/trophies/([a-z]+)%.svg$")
     local sound_tier = relative_path:match("^resources/packs/[a-z0-9_%-]+/sounds/([a-z]+)%.wav$")
     local tier = trophy_tier or sound_tier
-    assert(tier == "bronze" or tier == "silver" or tier == "gold" or tier == "platinum", "Bundled resource path not allowed")
+    local sheet = relative_path == "resources/ui/trophy-sheet.png" or relative_path == "resources/ui/control-sheet.png"
+    assert(sheet or tier == "bronze" or tier == "silver" or tier == "gold" or tier == "platinum", "Bundled resource path not allowed")
     local bytes = millennium.assets.read(relative_path)
-    assert(type(bytes) == "string" and #bytes <= 512 * 1024, "Bundled resource unavailable or oversized")
-    local mime = trophy_tier and "image/svg+xml" or "audio/wav"
+    assert(type(bytes) == "string" and #bytes <= (sheet and 2 * 1024 * 1024 or 512 * 1024), "Bundled resource unavailable or oversized")
+    local mime = sheet and "image/png" or trophy_tier and "image/svg+xml" or "audio/wav"
     return "data:" .. mime .. ";base64," .. base64_encode(bytes)
 end
 

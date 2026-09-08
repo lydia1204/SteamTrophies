@@ -33,6 +33,16 @@ function expect(name, mutate, shouldPass = false) {
 
 const results = [];
 results.push(expect('valid control pack', null, true));
+function addMp3(dir, bytes) {
+  const m = readManifest(dir); m.sounds = { ...m.sounds, 'toast.gold': 'gold.mp3' };
+  fs.unlinkSync(path.join(dir, 'sounds/gold.wav'));
+  fs.writeFileSync(path.join(dir, 'gold.mp3'), bytes); writeManifest(dir, m);
+}
+results.push(expect('MPEG frame signature control', dir => addMp3(dir, Buffer.from([255,251,144,0,0,0,0,0])), true));
+results.push(expect('ID3 with MPEG frame control', dir => addMp3(dir, Buffer.from([73,68,51,4,0,0,0,0,0,0,255,251,144,0])), true));
+results.push(expect('executable masquerading as MP3', dir => addMp3(dir, Buffer.from('MZnot-music'))));
+results.push(expect('oversized ID3 offset', dir => addMp3(dir, Buffer.from([73,68,51,4,0,0,127,127,127,127,255,251,144,0]))));
+results.push(expect('invalid MPEG frame bitrate', dir => addMp3(dir, Buffer.from([255,251,240,0]))));
 results.push(expect('path traversal', (dir) => { const m = readManifest(dir); m.assets['trophy.bronze'] = '../evil.png'; writeManifest(dir, m); }));
 results.push(expect('absolute path', (dir) => { const m = readManifest(dir); m.assets['trophy.bronze'] = '/tmp/evil.png'; writeManifest(dir, m); }));
 results.push(expect('reserved builtin namespace', (dir) => { const m = readManifest(dir); m.id = 'builtin.stolen'; writeManifest(dir, m); }));

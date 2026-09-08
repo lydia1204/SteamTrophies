@@ -83,6 +83,7 @@ function validatePlatinum(value: unknown, appId: number): value is PlatinumRecor
     && typeof value.achieved === 'boolean'
     && nullableInteger(value.unlockedAtUnix)
     && typeof value.name === 'string' && value.name.length <= 4096
+    && (value.completionAchievementId === undefined || value.completionAchievementId === null || (typeof value.completionAchievementId === 'string' && value.completionAchievementId.length > 0 && value.completionAchievementId.length <= 512))
     && typeof value.description === 'string' && value.description.length <= 16384;
 }
 
@@ -114,6 +115,7 @@ export function parseGameSnapshot(value: unknown): GameSnapshot {
     throw new Error('Unexpected game snapshot schema.');
   }
   if (!Array.isArray(value.achievements) || value.achievements.length > 10000) throw new Error('Invalid achievement collection.');
+  if (value.rarityRevision !== undefined && value.rarityRevision !== 1) throw new Error('Unknown rarity revision.');
   if (!value.achievements.every((row) => validateAchievement(row, value.appId as number))) throw new Error('Invalid achievement row.');
   if (!validatePlatinum(value.platinum, value.appId)) throw new Error('Invalid Platinum state.');
   if (!validateSummary(value.summary, value.appId)) throw new Error('Invalid game summary.');

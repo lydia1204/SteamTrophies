@@ -12,7 +12,7 @@ export function mergeAchievement(rawInput: SteamAchievementInput, o: MergeAchiev
   // trophy cabinet must not revoke something that was already awarded locally.
   const achieved = raw.achieved || Boolean(prev?.achieved);
   const unlockedAtUnix = raw.achieved
-    ? (raw.unlockedAtUnix ?? prev?.unlockedAtUnix ?? o.nowUnix)
+    ? (raw.unlockedAtUnix ?? prev?.unlockedAtUnix ?? null)
     : (prev?.unlockedAtUnix ?? null);
   return {
     ...raw,

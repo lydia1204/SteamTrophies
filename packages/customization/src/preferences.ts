@@ -1,7 +1,9 @@
 import type { LibraryPresentationStateV1, NotificationPreferencesV1, QuietHoursV1 } from './types';
 
-export const DEFAULT_LIBRARY_PRESENTATION: LibraryPresentationStateV1 = Object.freeze({ pinnedAppIds: [], hiddenAppIds: [], trackedAppIds: [] });
+export const DEFAULT_LIBRARY_PRESENTATION: LibraryPresentationStateV1 = Object.freeze({ pinnedAppIds: [], hiddenAppIds: [], trackedAppIds: [], artworkStyle: 'capsule', artworkFallbackOrder: ['landscape', 'capsule', 'icon'] as LibraryPresentationStateV1['artworkFallbackOrder'], bronzeBorders: false, silverBorders: false, achievementSize: 44 });
 export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferencesV1 = Object.freeze({
+  animation: 'slide',
+  soundPackId: null,
   enabled: true,
   durationMs: 5200,
   position: 'bottom_right',
@@ -21,10 +23,11 @@ function sanitizeAppIds(value: unknown): number[] {
 
 export function validateLibraryPresentation(value: unknown): LibraryPresentationStateV1 {
   const raw = value && typeof value === 'object' ? value as Partial<LibraryPresentationStateV1> : {};
-  return { pinnedAppIds: sanitizeAppIds(raw.pinnedAppIds), hiddenAppIds: sanitizeAppIds(raw.hiddenAppIds), trackedAppIds: sanitizeAppIds(raw.trackedAppIds) };
+  const artworkFallbackOrder = [...new Set([...(Array.isArray(raw.artworkFallbackOrder) ? raw.artworkFallbackOrder : []), ...DEFAULT_LIBRARY_PRESENTATION.artworkFallbackOrder])].filter((v): v is 'capsule' | 'icon' | 'landscape' => ['capsule','icon','landscape'].includes(v));
+  return { pinnedAppIds: sanitizeAppIds(raw.pinnedAppIds), hiddenAppIds: sanitizeAppIds(raw.hiddenAppIds), trackedAppIds: sanitizeAppIds(raw.trackedAppIds), artworkStyle: raw.artworkStyle === 'icon' || raw.artworkStyle === 'landscape' ? raw.artworkStyle : 'capsule', artworkFallbackOrder, bronzeBorders: raw.bronzeBorders === true, silverBorders: raw.silverBorders === true, achievementSize: Number.isFinite(raw.achievementSize) ? Math.max(32, Math.min(72, Math.round(raw.achievementSize!))) : 44 };
 }
 
-export function toggleAppPreference(state: LibraryPresentationStateV1, key: keyof LibraryPresentationStateV1, appId: number, enabled?: boolean): LibraryPresentationStateV1 {
+export function toggleAppPreference(state: LibraryPresentationStateV1, key: 'pinnedAppIds' | 'hiddenAppIds' | 'trackedAppIds', appId: number, enabled?: boolean): LibraryPresentationStateV1 {
   if (!Number.isSafeInteger(appId) || appId <= 0) throw new Error('Invalid app id.');
   const current = new Set(state[key]);
   const shouldEnable = enabled ?? !current.has(appId);
@@ -42,6 +45,8 @@ export function validateNotificationPreferences(value: unknown): NotificationPre
   const raw = value && typeof value === 'object' ? value as Partial<NotificationPreferencesV1> : {};
   const positions = new Set(['top_left', 'top_right', 'bottom_left', 'bottom_right']);
   return {
+    animation: ['slide', 'fade', 'rise', 'zoom', 'bounce', 'flip', 'none'].includes(String(raw.animation)) ? raw.animation! : 'slide',
+    soundPackId: typeof raw.soundPackId === 'string' && /^[a-z0-9][a-z0-9._-]{2,63}$/.test(raw.soundPackId) ? raw.soundPackId : null,
     enabled: raw.enabled !== false,
     durationMs: Number.isFinite(raw.durationMs) ? Math.max(1500, Math.min(15000, Math.floor(raw.durationMs!))) : DEFAULT_NOTIFICATION_PREFERENCES.durationMs,
     position: positions.has(String(raw.position)) ? raw.position! : DEFAULT_NOTIFICATION_PREFERENCES.position,

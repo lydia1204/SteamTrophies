@@ -6,6 +6,7 @@ export function LayoutEditor({ surface }: { surface: SurfaceKind }) {
   const state = useCustomizationState();
   const layout = state.config.layout.surfaces[surface];
   const definitions = new Map(DEFAULT_WIDGETS.map((widget) => [widget.id, widget]));
+  if (surface !== 'big_picture') return <section className="stt-settings-section"><h3>Dashboard layout</h3><p>Shelf ordering currently applies to Big Picture. Desktop layout controls will follow the new layout design; your saved preferences are retained.</p></section>;
   return (
     <section className="stt-settings-section" data-stt-component="layout-editor" data-stt-surface={surface}>
       <header><div><h3>Dashboard layout</h3><p>Reorder or hide shelves for this surface only.</p></div><button className="st-mini-button" onClick={() => void customizationService.resetLayout(surface)}>Reset</button></header>

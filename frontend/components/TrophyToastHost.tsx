@@ -20,11 +20,13 @@ export function TrophyToastHost() {
       data-stt-surface={surface}
       data-stt-component="toast-host"
       data-position={customization.config.notifications.position}
+      data-animation={customization.config.notifications.animation}
+      data-stt-reduced-motion={customization.config.accessibility.reducedMotion}
       style={style}
       aria-live="polite"
       aria-atomic="false"
     >
-      {toasts.map((toast) => (
+      {toasts.filter(toast => !toast.nativePreview).map((toast) => (
         <button key={toast.id} className={`stt-toast stt-toast-${toast.tier}`} data-stt-component="trophy-toast" data-stt-tier={toast.tier} onClick={() => notificationService.dismiss(toast.id)}>
           <div className="stt-toast-icon">
             {toast.iconUrl ? <img src={toast.iconUrl} alt="" /> : <TrophyGlyph tier={toast.tier} appId={toast.appId || undefined} achievementId={toast.achievementId} size={44} />}

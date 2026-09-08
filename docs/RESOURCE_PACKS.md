@@ -32,7 +32,7 @@ Pass 3 keeps manifest version 1 but extends its optional backward-compatible fie
 - four required tier images;
 - an optional preview image;
 - up to 48 named one-off trophy images using `custom.*` keys;
-- optional `toast.bronze|silver|gold|platinum` WAV/OGG files;
+- optional `toast.bronze|silver|gold|platinum` WAV/OGG/MP3 files;
 - metadata such as homepage, tags, accent, attribution and recommended surfaces.
 
 Example:
@@ -86,7 +86,7 @@ On a game trophy page, **Trophy icons** opens the game-specific editor. It provi
 - reveal-source/reveal-managed-copy actions;
 - reset to inherited global behavior.
 
-Every achievement also has an **Icon** editor. It can inherit normally or choose any tier/named `custom.*` resource declared by any installed pack.
+The per-achievement **Icon** editor entry point is deprecated and hidden in desktop detail rows. Its implementation and existing overrides remain intact; saved tier/named `custom.*` resources continue to resolve.
 
 Saved customization stores only `packId` + semantic resource key. It never stores an arbitrary achievement filesystem path.
 
@@ -101,7 +101,7 @@ The backend:
 5. requires every regular file to be declared by the manifest;
 6. rejects absolute/traversal/UNC/drive paths;
 7. accepts user images only as PNG/JPEG/WebP;
-8. accepts sounds only as WAV/OGG;
+8. accepts sounds only as WAV/OGG/MP3 (MP3 requires a valid MPEG frame header after any bounded ID3 tag);
 9. verifies file magic bytes instead of trusting extensions;
 10. caps individual assets at 4 MiB and total unpacked pack content at 64 MiB;
 11. copies to private staging without following links;

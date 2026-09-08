@@ -2,6 +2,10 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const steam = require('../../../.test-build/packages/steam-adapter/src/index.js');
 
+test('Steam failure result cannot erase achievements via an empty data array', () => {
+  assert.throws(() => steam.extractAchievementArray({ result: 2, data: { rgAchievements: [] } }), /Cached trophies have been preserved/);
+});
+
 test('decodes CMsgAchievementChange appid protobuf field', () => {
   // field 1 (wire 0), appid=570 => 0x08 0xBA 0x04
   const bytes = Uint8Array.from([0x08, 0xBA, 0x04]);
@@ -25,7 +29,7 @@ test('achievement adapter maps SteamClient achievement fields', async () => {
   const adapter = new steam.SteamAchievementAdapter(fake);
   const [a] = await adapter.getMyAchievements(10);
   assert.equal(a.id, 'ACH');
-  assert.equal(a.globalUnlockPercent, 4.5);
+  assert.equal(a.globalUnlockPercent, null); // Local client field is not authoritative global rarity.
   assert.equal(a.achieved, true);
 });
 

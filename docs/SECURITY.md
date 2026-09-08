@@ -59,7 +59,7 @@
 - every ordinary payload file must be manifest-declared
 - bounded file count, individual size and total size
 - PNG/JPEG/WebP image signature validation
-- WAV/OGG sound signature validation where enabled
+- WAV/OGG/MP3 sound signature validation where enabled, including bounded ID3 tag parsing
 - decoded image dimensions capped at 8192 per axis
 - decoded image pixel count capped at 16,777,216
 - executable/script masquerading rejected

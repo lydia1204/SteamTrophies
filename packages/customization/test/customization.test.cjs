@@ -34,6 +34,36 @@ test('English catalog interpolates values and pseudo locale expands visible stri
   assert.equal(pseudoLocalize('Open {count} games').includes('{count}'), true);
 });
 
+test('desktop appearance migration preserves user lists and defaults to capsules without optional borders', () => {
+  const state = structuredClone(DEFAULT_CUSTOMIZATION_STATE);
+  state.library = { pinnedAppIds: [105600], hiddenAppIds: [214420], trackedAppIds: [] };
+  const migrated = validateCustomizationState(state);
+  assert.deepEqual(migrated.library.pinnedAppIds, [105600]);
+  assert.deepEqual(migrated.library.hiddenAppIds, [214420]);
+  assert.equal(migrated.library.artworkStyle, 'capsule');
+  assert.deepEqual(migrated.library.artworkFallbackOrder, ['landscape','capsule','icon']);
+  state.library.artworkStyle = 'landscape';
+  state.library.artworkFallbackOrder = ['icon','icon','not-art','capsule'];
+  assert.equal(validateCustomizationState(state).library.artworkStyle, 'landscape');
+  assert.deepEqual(validateCustomizationState(state).library.artworkFallbackOrder, ['icon','capsule','landscape']);
+  assert.equal(migrated.library.bronzeBorders, false);
+  assert.equal(migrated.library.silverBorders, false);
+  assert.equal(migrated.library.achievementSize, 44);
+  state.library.achievementSize = 10000;
+  assert.equal(validateCustomizationState(state).library.achievementSize, 72);
+});
+
+test('toast animation preferences are allowlisted and MP3 pack references are accepted', () => {
+  for (const animation of ['slide','fade','rise','zoom','bounce','flip','none']) assert.equal(validateNotificationPreferences({ animation }).animation, animation);
+  assert.equal(validateNotificationPreferences({ animation: 'arbitrary' }).animation, 'slide');
+  assert.equal(userPack({ sounds: { 'toast.gold': 'sounds/gold.mp3' } }).manifest.sounds['toast.gold'], 'sounds/gold.mp3');
+  const state = structuredClone(DEFAULT_CUSTOMIZATION_STATE);
+  state.notifications.soundPackId = 'example.safe-pack';
+  const pack = userPack({ sounds: { 'toast.gold': 'sounds/gold.mp3' } });
+  assert.equal(resolveToastSound(state, [...BUILTIN_PACKS, pack], { tier: 'gold' }).packId, 'example.safe-pack');
+  assert.equal(state.trophies.globalPackId, DEFAULT_CUSTOMIZATION_STATE.trophies.globalPackId);
+});
+
 function userPack(overrides = {}) {
   return {
     source: 'user',

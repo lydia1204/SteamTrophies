@@ -15,6 +15,11 @@
     "declaration": false
   },
   "include": [
+    "frontend/runtime/library.ts",
+    "frontend/runtime/native-toast-compat.ts",
+    "frontend/runtime/outside-click.ts",
+    "frontend/runtime/input-modality.ts",
+    "frontend/state/service.ts",
     "packages/core/src/**/*.ts",
     "packages/storage/src/**/*.ts",
     "packages/steam-adapter/src/**/*.ts",

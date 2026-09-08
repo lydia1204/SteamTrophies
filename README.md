@@ -6,6 +6,12 @@ SteamTrophies is an open-source Steam client plugin project that layers a fast, 
 
 Current repository state: **0.4.0-rc.1 finalization candidate**. The dependency graph, macOS source checks, Lua validation, and Decky build are reproducible, but this is not a production release while live runtime gates remain pending.
 
+September 8 desktop update: three artwork styles (portrait, landscape store capsule, icon) with an ordered fallback setting; pointer-aware focus rings; pinned-row markers; and blue Platinum completion tooltips. Original completion identity is retained when achievements are added later. Forager's exact `feat83` Completionist achievement is an explicit historical-completion rule, not a name-based heuristic. Other incomplete first-import catalogues are not assumed previously complete. See [Desktop QA](docs/DESKTOP_QA_2026-09-08.md) for remaining live checks.
+
+In-game trophy visuals depend on Steam registering a working game overlay, not merely its settings switch being enabled. Notification settings include a delayed outside-window test and delivery diagnostics. A successful sound or desktop renderer does not prove an in-game popup appeared.
+
+Mac validation update (2026-09-07): user screenshots exposed incorrect all-Gold rarity, import sounds, hidden narrow-card counts, and missing game artwork. See [Screenshot QA and repair report](docs/SCREENSHOT_QA_2026-09-07.md) for evidence, fixes, remaining gaps, and user testing. Earlier engineering PASS labels are not live acceptance.
+
 > [!IMPORTANT]
 > This repository is intentionally at release-candidate stage. The offline engineering gates are automated, but several live Steam and physical-device release gates still require evidence on the exact current Steam/Millennium/Decky builds. See [Runtime Release Gates](docs/RUNTIME_RELEASE_GATES.md).
 
@@ -50,6 +56,8 @@ SteamTrophies classifies each real Steam achievement by global unlock percentage
 
 When an achievement is earned, SteamTrophies freezes both the awarded tier and the global rarity seen at award time. If a game's global statistics later drift, the historical trophy does not quietly change from Gold to Silver.
 
+The Mac adapter obtains percentages from Valve's public global-achievement endpoint; the local client `flAchieved` field is not trusted because this build returns placeholder zeroes. Missing rarity is shown as unknown (with a provisional Bronze fallback), never as 0%. Existing zero-source imports can be corrected with **Repair cached rarity**. This refreshes metadata on existing shards, preserving unlocks, dates, Platinum, and customizations; it does not reimport achievements. Verified award tiers remain frozen on later rarity drift. Current percentages cannot reconstruct historical global rarity at the actual unlock date.
+
 If a developer later removes an achievement from Steam, previously earned trophy history is retained as retired history. Removed locked achievements are not fossilized into the library.
 
 ## Major features
@@ -58,7 +66,7 @@ If a developer later removes an achievement from Steam, previously earned trophy
 
 - Compact warm library index for instant UI paint.
 - Per-game shards so one giant JSON document is never required.
-- Resumable background discovery for libraries with thousands of titles.
+- Explicit, resumable discovery for libraries with thousands of titles. Startup loads the saved library only; use **Find new games** to scan.
 - Bounded refresh concurrency, retry backoff and cancellation.
 - Local corruption recovery from validated shards before any network access.
 - Virtualized game lists with accessibility-aware row sizing.
@@ -90,7 +98,7 @@ Custom packs can provide:
 
 - Bronze, Silver, Gold and Platinum icons
 - Named one-off trophy assets
-- Per-tier WAV or OGG trophy sounds
+- Per-tier WAV, OGG or MP3 trophy sounds
 - Preview and attribution metadata
 - Recommended surfaces and tags
 
@@ -158,9 +166,13 @@ Unlock notifications support:
 
 Every trophy event is retained even when a burst is visually or audibly condensed.
 
+First-time game imports record history silently, without toast or sound playback. Metadata-only rarity repair is also silent.
+
 ### Layout customization
 
 Desktop, Big Picture and Deck surfaces maintain independent layout state over stable widget IDs. Widgets can be shown, hidden and reordered without changing Trophy Core semantics.
+
+Current limitation: Big Picture consumes shelf order/visibility. The desktop list does not yet consume the saved dashboard layout configuration; desktop redesign and wiring remain pending. Do not treat saved settings as proof the desktop layout changed.
 
 ## Platform status
 
@@ -187,7 +199,7 @@ Once released, prefer the supported plugin manager/database path for the host ra
 1. Install a current supported Millennium release for Steam.
 2. Fully restart Steam after Millennium installation if required by Millennium.
 3. Install the published SteamTrophies package through its supported plugin installation flow.
-4. Open SteamTrophies once and allow first-run discovery to proceed in the background.
+4. Open SteamTrophies and choose **Find new games** to start first-run discovery. Restarting Steam does not start a scan.
 5. Open **SteamTrophies -> Diagnostics** if the trophy entry does not appear.
 
 For source development, see [Build from source](#build-from-source).
@@ -198,7 +210,7 @@ For source development, see [Build from source](#build-from-source).
 2. Install the current supported Millennium release.
 3. Install the published SteamTrophies package through the normal plugin flow.
 4. Restart Steam if requested.
-5. Let first-run achievement discovery run in the background.
+5. Choose **Find new games** for first-run achievement discovery; subsequent startups use the saved library without automatically scanning.
 
 Avoid claiming support for a Steam packaging format that Millennium itself does not currently support. If Steam or Millennium is installed through an unusual containerized distribution, verify upstream support first.
 

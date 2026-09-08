@@ -1,4 +1,5 @@
 import {
+  completionAchievement,
   buildGameSnapshot,
   buildLibraryIndex,
   DEFAULT_SETTINGS,
@@ -14,11 +15,14 @@ import {
   TrophyEvent,
   TrophySettings,
   validateSettings,
+  repairRarity,
+  shouldAnnounceRefresh,
 } from '../../packages/core/src';
 import { SteamAchievementAdapter, resolveSteamClient } from '../../packages/steam-adapter/src';
 import { decodeGameSnapshot, decodeLibraryIndex } from '../../packages/storage/src';
 import { trophyBackend } from '../runtime/backend';
 import { discoverLibraryAppIds, resolveGameName } from '../runtime/library';
+import { parseGlobalRarity } from '../../packages/steam-adapter/src/global-rarity';
 
 export interface TrophyState {
   ready: boolean;
@@ -28,6 +32,10 @@ export interface TrophyState {
   selectedGame: GameSnapshot | null;
   settings: TrophySettings;
   error: string | null;
+  discoveryStatus: string;
+  discovering: boolean;
+  repairing: boolean;
+  repairStatus: string | null;
 }
 
 type Listener = () => void;
@@ -49,6 +57,10 @@ export class TrophyService {
     selectedGame: null,
     settings: DEFAULT_SETTINGS,
     error: null,
+    discoveryStatus: 'Waiting for Steam’s library…',
+    discovering: false,
+    repairing: false,
+    repairStatus: null,
   };
   private readonly listeners = new Set<Listener>();
   private readonly eventListeners = new Set<TrophyEventListener>();
@@ -59,6 +71,11 @@ export class TrophyService {
   private discovery: DiscoveryLedgerV1 = emptyDiscoveryLedger();
   private commitTail: Promise<void> = Promise.resolve();
   private refreshInFlight = 0;
+  private generation = 0;
+  private discoveryRunning = false;
+  private readonly discoveryPending = new Set<number>();
+  private discoveryTotal = 0;
+  private discoveryChecked = 0;
 
   getSnapshot = (): TrophyState => this.state;
 
@@ -73,6 +90,7 @@ export class TrophyService {
   };
 
   async boot(): Promise<void> {
+    const generation = ++this.generation;
     // Critical UX rule: hydrate the compact local index before any network/library work.
     try {
       const raw = await trophyBackend.readIndexJson();
@@ -86,9 +104,14 @@ export class TrophyService {
 
     await this.loadSmallLocalState();
 
-    const steam = resolveSteamClient();
+    let steam = resolveSteamClient();
+    for (let attempt = 0; !steam && attempt < 30 && generation === this.generation; attempt++) {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      steam = resolveSteamClient();
+    }
+    if (generation !== this.generation) return;
     if (!steam) {
-      this.setError('Steam achievement API is not available in this window.');
+      this.setError('Steam achievement API is unavailable. Restart Steam using Steam Millennium, then open Library.');
       return;
     }
     this.adapter = new SteamAchievementAdapter(steam);
@@ -96,6 +119,7 @@ export class TrophyService {
       concurrency: this.state.settings.refreshConcurrency,
       eventDebounceMs: 600,
       minPerAppIntervalMs: 2500,
+      maxRetries: 0, // Failed library reads stay visible and require explicit retry; no endless background loop.
     });
     this.stopAchievementEvents = this.adapter.onAchievementChanged((appId) => {
       if (appId) this.scheduler?.request(appId, 'event');
@@ -105,14 +129,9 @@ export class TrophyService {
       }
     });
 
-    // Stale-while-revalidate: warm visible entries quietly after first paint.
-    const now = Math.floor(Date.now() / 1000);
-    for (const game of this.state.index.games.slice(0, 40)) {
-      if (game.staleAfterUnix <= now) this.scheduler.request(game.appId, 'stale');
-    }
-
-    // Discovery is resumable and periodically re-probes hidden apps. It remains off the click path.
-    void this.backgroundDiscovery();
+    // Startup is strictly cache-only. Discovery is an explicit user action, never a restart side effect.
+    this.state = { ...this.state, discoveryStatus: 'Saved library loaded · Automatic discovery is off', discovering: false };
+    this.emit();
   }
 
   private async loadSmallLocalState(): Promise<void> {
@@ -131,20 +150,102 @@ export class TrophyService {
     this.emit();
   }
 
+  rescanLibrary(): void {
+    if (this.state.repairing) return;
+    if (!this.scheduler) {
+      this.setError('Steam achievement API is unavailable. Restart using Steam Millennium.');
+      return;
+    }
+    void this.backgroundDiscovery();
+  }
+
+  async repairCachedRarity(): Promise<void> {
+    if (this.state.repairing || this.state.discovering || this.state.refreshing) return;
+    const generation = this.generation;
+    const ids = this.state.index.games.map((game) => game.appId);
+    this.state = { ...this.state, repairing: true, repairStatus: 'Repairing cached rarity without reimporting achievements…' };
+    this.emit();
+    let repaired = 0, failed = 0;
+    try {
+      for (const id of ids) {
+        if (generation !== this.generation) return;
+        try {
+          const raw = await trophyBackend.readGlobalRarityJson(id);
+          if (!raw) throw new Error('Global rarity unavailable');
+          const percentages = parseGlobalRarity(raw);
+          const operation = this.commitTail.then(async () => {
+            if (generation !== this.generation) return;
+            const latest = this.gameCache.get(id) ?? await this.readCachedGame(id);
+            if (!latest) throw new Error('Cached game unavailable');
+            if (generation !== this.generation) return;
+            await this.commitGame(repairRarity(latest, percentages, this.state.settings.thresholds, true), [], false);
+          });
+          this.commitTail = operation.catch(() => {});
+          await operation;
+          repaired++;
+        } catch { failed++; }
+        if (generation !== this.generation) return;
+        this.state = { ...this.state, repairStatus: `${repaired} / ${ids.length} games repaired · ${failed} unavailable` };
+        this.emit();
+        await new Promise((resolve) => setTimeout(resolve, 300));
+      }
+    } finally {
+      if (generation === this.generation) {
+        this.state = { ...this.state, repairing: false, repairStatus: `Rarity repair finished: ${repaired} games corrected, ${failed} unavailable. Unlocks and customizations retained.` };
+        this.emit();
+      }
+    }
+  }
+
   private async backgroundDiscovery(): Promise<void> {
-    const ids = await discoverLibraryAppIds();
-    if (!ids.length || !this.scheduler) return;
+    if (this.discoveryRunning || this.discoveryPending.size || !this.scheduler) return;
+    this.discoveryRunning = true;
+    const generation = this.generation;
+    this.state = { ...this.state, discovering: true, discoveryStatus: 'Waiting for Steam’s library…' };
+    this.emit();
+    let ids = await discoverLibraryAppIds();
+    for (let attempt = 0; !ids.length && attempt < 30 && generation === this.generation; attempt++) {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      ids = await discoverLibraryAppIds();
+    }
+    if (generation !== this.generation) return;
+    if (!ids.length || !this.scheduler) {
+      this.discoveryRunning = false;
+      this.state = { ...this.state, discovering: false, discoveryStatus: 'Library not available yet. Open Steam’s Library, then select Retry discovery.' };
+      this.emit();
+      return;
+    }
     const visible = new Set(this.state.index.games.map((game) => game.appId));
     const now = Math.floor(Date.now() / 1000);
-    for (const appId of ids) {
-      if (visible.has(appId) || !shouldProbeApp(this.discovery, appId, now)) continue;
+    const candidates = ids.filter((appId) => !visible.has(appId) && shouldProbeApp(this.discovery, appId, now));
+    this.discoveryTotal = candidates.length;
+    this.discoveryChecked = 0;
+    for (const id of candidates) this.discoveryPending.add(id);
+    this.state = { ...this.state, discoveryStatus: `${ids.length.toLocaleString()} library apps detected · ${candidates.length.toLocaleString()} to check` };
+    this.emit();
+    for (const appId of candidates) {
+      if (generation !== this.generation || !this.scheduler) return;
       this.scheduler.request(appId, 'background');
       // Prevent a 2k-title burst against Steam's local service. Scheduler concurrency is bounded separately.
       await new Promise((resolve) => setTimeout(resolve, 120));
     }
+    if (generation !== this.generation) return;
+    this.discoveryRunning = false;
+    this.updateDiscoveryStatus();
+  }
+
+  private updateDiscoveryStatus(): void {
+    const discovering = this.discoveryRunning || this.discoveryPending.size > 0;
+    this.state = { ...this.state, discovering, discoveryStatus: this.discoveryTotal
+      ? `${this.discoveryChecked.toLocaleString()} / ${this.discoveryTotal.toLocaleString()} apps checked${discovering ? ' · Discovering trophies…' : this.discoveryChecked < this.discoveryTotal ? ' · Some reads failed; retry discovery' : ' · Scan finished'}`
+      : 'Library detected · No apps due for discovery' };
+    this.emit();
   }
 
   dispose(): void {
+    this.generation++;
+    this.discoveryRunning = false;
+    this.discoveryPending.clear();
     this.stopAchievementEvents?.();
     this.stopAchievementEvents = null;
     this.scheduler?.stop();
@@ -174,8 +275,37 @@ export class TrophyService {
     if (!summary || summary.staleAfterUnix <= Math.floor(Date.now() / 1000)) this.scheduler?.request(appId, 'visible');
   }
 
+  /** Card previews read only an existing shard: never select, refresh, scan, or emit an event. */
+  async getCachedCompletion(appId: number) {
+    await this.getCachedPreview(appId);
+    const game = this.gameCache.get(appId);
+    return game ? { achievement: completionAchievement(game.achievements, game.platinum), unlockedAtUnix: game.platinum.unlockedAtUnix } : { achievement: null, unlockedAtUnix: null };
+  }
+
+  async getCachedPreview(appId: number): Promise<GameSnapshot['achievements']> {
+    let game = this.gameCache.get(appId);
+    if (!game) {
+      try {
+        const raw = await trophyBackend.readGameJson(appId);
+        if (raw) {
+          game = decodeGameSnapshot(raw, `state/games/${appId}.v1.json`);
+          this.gameCache.set(appId, game);
+        }
+      } catch { return []; } // A missing preview never quarantines or rewrites saved data.
+    }
+    return (game?.achievements ?? []).filter(a => a.achieved)
+      .sort((a, b) => (b.unlockedAtUnix ?? 0) - (a.unlockedAtUnix ?? 0))
+      .map(a => ({ ...a, globalUnlockPercent: game?.rarityRevision === 1 ? a.globalUnlockPercent : null }));
+  }
+
   closeGame(): void {
     this.state = { ...this.state, selectedAppId: null, selectedGame: null };
+    this.emit();
+  }
+
+  dismissRepairStatus(): void {
+    if (this.state.repairing) return;
+    this.state = { ...this.state, repairStatus: null };
     this.emit();
   }
 
@@ -198,7 +328,7 @@ export class TrophyService {
       const achievements = await this.adapter.getMyAchievements(appId);
       if (signal?.aborted) return;
       const now = Math.floor(Date.now() / 1000);
-      const next = buildGameSnapshot({
+      let next = buildGameSnapshot({
         appId,
         name: previous?.name ?? resolveGameName(appId),
         achievements,
@@ -208,14 +338,27 @@ export class TrophyService {
         thresholds: this.state.settings.thresholds,
         visibility: this.state.settings.visibility,
       });
+      if (achievements.length && achievements.some((a) => a.achieved)) {
+        try {
+          const raw = await trophyBackend.readGlobalRarityJson(appId);
+          if (!raw) throw new Error('Global rarity unavailable');
+          next = repairRarity(next, parseGlobalRarity(raw), this.state.settings.thresholds);
+        } catch {
+          // Unknown is not zero. Preserve previously verified data if Steam is unavailable.
+          const known = new Map(previous?.rarityRevision === 1 ? previous.achievements.flatMap((a) => a.globalUnlockPercent == null ? [] : [[a.id, a.globalUnlockPercent] as const]) : []);
+          next = repairRarity(next, known, this.state.settings.thresholds);
+        }
+      }
       const events = deriveEvents(previous, next);
       if (signal?.aborted) return;
-      await this.enqueueCommit(next, events);
+      await this.enqueueCommit(next, events, shouldAnnounceRefresh(previous));
+      if (this.discoveryPending.has(appId)) this.discoveryChecked++;
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      this.setError(message);
+      this.setError(`App ${appId}: ${message}`);
       throw error; // RefreshScheduler owns retry/backoff policy.
     } finally {
+      if (this.discoveryPending.delete(appId)) this.updateDiscoveryStatus();
       this.refreshInFlight = Math.max(0, this.refreshInFlight - 1);
       if (this.refreshInFlight === 0) {
         this.state = { ...this.state, refreshing: false };
@@ -225,13 +368,13 @@ export class TrophyService {
   }
 
   /** Serializes all durable state commits so concurrent refresh workers cannot regress the compact index. */
-  private enqueueCommit(next: GameSnapshot, events: TrophyEvent[]): Promise<void> {
-    const operation = this.commitTail.then(() => this.commitGame(next, events));
+  private enqueueCommit(next: GameSnapshot, events: TrophyEvent[], announce = true): Promise<void> {
+    const operation = this.commitTail.then(() => this.commitGame(next, events, announce));
     this.commitTail = operation.catch(() => {});
     return operation;
   }
 
-  private async commitGame(next: GameSnapshot, events: TrophyEvent[]): Promise<void> {
+  private async commitGame(next: GameSnapshot, events: TrophyEvent[], announce = true): Promise<void> {
     this.gameCache.set(next.appId, next);
 
     const summaries = new Map(this.state.index.games.map((game) => [game.appId, game]));
@@ -253,7 +396,7 @@ export class TrophyService {
     // Refresh telemetry is rebuildable noise. Only append irreversible trophy events.
     const durableEvents = events.filter((event) => event.type !== 'game_refreshed');
     await this.persistEvents(durableEvents);
-    if (durableEvents.length) for (const listener of this.eventListeners) { try { listener(durableEvents, next); } catch (error) { console.warn('[SteamTrophies] trophy event listener failed', error); } }
+    if (announce && durableEvents.length) for (const listener of this.eventListeners) { try { listener(durableEvents, next); } catch (error) { console.warn('[SteamTrophies] trophy event listener failed', error); } }
 
     this.discovery = markAppScanned(this.discovery, next.appId, next.summary.lastRefreshAtUnix);
     await trophyBackend.writeDiscoveryJson(JSON.stringify(this.discovery));

@@ -20,13 +20,18 @@ local function on_frontend_loaded()
     logger:info("SteamTrophies frontend loaded")
 end
 
--- Toolbar injection is intentionally isolated. Steam's compiled header chunks are unstable.
--- Codex should verify the current Steam client chunk before enabling a transform here.
--- The frontend already exports `hookedToolbar.TrophyButton`, so the eventual patch only needs
--- to splice that component beside the normal header controls. Do not guess a regex against a
--- different Steam build; a bad patch can remove native controls.
+-- Verified against macOS Steam build 1788652215, chunk~2dcc5aaf7.js.
+-- Fail closed on upstream drift: only the verified titlebar and notification call match.
+-- Preserve every native control; append a sibling immediately after the notification bell.
 local function get_patches()
-    return {}
+    return {{
+        file = [[chunk~2dcc5aaf7\.js]],
+        find = [=[className:\(0,g\.A\)\(Xt\(\)\.TitleBarControls,t\),\.\.\.r,children:\(0,i\.jsxs\)\(ze\.wC,\{children:\[[^\]]+]=],
+        transforms = {{
+            match = [[\(0,i\.jsx\)\(dr,\{\}\)]],
+            replace = [[(0,i.jsx)(dr,{}),(0,i.jsx)(#{{self}}?.hookedToolbar?.TrophyButton||(()=>null),{className:Xt().Button})]],
+        }},
+    }}
 end
 
 return {

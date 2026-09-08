@@ -28,6 +28,9 @@ export function extractAchievementArray(response: unknown): SteamClientAchieveme
   if (Array.isArray(response)) return response.filter(isAchievementLike);
   if (!response || typeof response !== 'object') throw new Error('Unrecognized Steam achievement response.');
   const record = response as SteamAchievementResponse;
+  if (record.result !== undefined && record.result !== 1) {
+    throw new Error(`Steam could not read achievements (result ${record.result}). Cached trophies have been preserved.`);
+  }
 
   const directCandidates: unknown[] = [record.achievements, record.vecAchievements, record.rgAchievements];
   for (const value of directCandidates) {
@@ -63,7 +66,8 @@ export function mapSteamAchievement(value: SteamClientAchievement): SteamAchieve
     description: value.strDescription ?? '',
     hidden: Boolean(value.bHidden),
     achieved: Boolean(value.bAchieved),
-    globalUnlockPercent: Number.isFinite(value.flAchieved) ? value.flAchieved : null,
+    // Local macOS responses contain placeholder zeroes here. Never infer rarity from them.
+    globalUnlockPercent: null,
     unlockedAtUnix: Number.isFinite(value.rtUnlocked) && value.rtUnlocked > 0 ? value.rtUnlocked : null,
     iconUrl: value.strImage || null,
     currentProgress: Number.isFinite(value.flCurrentProgress) ? value.flCurrentProgress : null,

@@ -6,6 +6,8 @@ The list was synthesized from current Valve Steam Deck guidance, current Millenn
 
 ## Status model
 
+**2026-09-07 live screenshot caveat:** the Mac screenshots contradict acceptance of rarity correctness, narrow-card trophy visibility, and first-import notification behavior. Desktop layout controls also persist settings without applying them to the desktop list. [The screenshot QA report](SCREENSHOT_QA_2026-09-07.md) supersedes any interpretation of this older engineering checklist as live functional approval. The JSON gate checks checklist structure; it is not an end-to-end test.
+
 - **PASS** means the architecture/code has an offline engineering check, automated regression, or bounded design contract in this repository.
 - **RUNTIME GATE** means an offline build is not allowed to pretend success. Codex must produce evidence from the current live Steam/Deck environment before release.
 

@@ -9,6 +9,7 @@ export interface RefreshSchedulerOptions {
   eventDebounceMs?: number;
   minPerAppIntervalMs?: number;
   maxBackoffMs?: number;
+  maxRetries?: number;
 }
 
 const RANK = { event: 4, visible: 3, stale: 2, background: 1 } as const;
@@ -25,6 +26,7 @@ export class RefreshScheduler {
   private readonly eventDebounceMs: number;
   private readonly minPerAppIntervalMs: number;
   private readonly maxBackoffMs: number;
+  private readonly maxRetries: number;
 
   constructor(
     private readonly refresh: (appId: number, signal: AbortSignal) => Promise<void>,
@@ -34,6 +36,7 @@ export class RefreshScheduler {
     this.eventDebounceMs = Math.max(0, options.eventDebounceMs ?? 600);
     this.minPerAppIntervalMs = Math.max(0, options.minPerAppIntervalMs ?? 2500);
     this.maxBackoffMs = Math.max(1000, options.maxBackoffMs ?? 300000);
+    this.maxRetries = Math.max(0, Math.min(5, options.maxRetries ?? 2));
   }
 
   request(appId: number, priority: RefreshRequest['priority'] = 'background', nowMs = Date.now()): void {
@@ -61,7 +64,7 @@ export class RefreshScheduler {
   }
 
   pendingCount(): number {
-    return this.queue.size + this.inFlight.size;
+    return this.queue.size + this.inFlight.size + this.retryTimers.size;
   }
 
   private kick(delay: number): void {
@@ -95,6 +98,7 @@ export class RefreshScheduler {
           if (controller.signal.aborted || this.stopped) return;
           const failures = (this.failures.get(request.appId) ?? 0) + 1;
           this.failures.set(request.appId, failures);
+          if (failures > this.maxRetries) return;
           const delay = Math.min(this.maxBackoffMs, 1000 * 2 ** Math.min(8, failures));
           const oldTimer = this.retryTimers.get(request.appId);
           if (oldTimer) clearTimeout(oldTimer);

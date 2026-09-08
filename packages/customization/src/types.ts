@@ -124,6 +124,11 @@ export interface TrophyProjectStateV1 {
 }
 
 export interface LibraryPresentationStateV1 {
+  artworkStyle: 'capsule' | 'icon' | 'landscape';
+  artworkFallbackOrder: ('capsule' | 'icon' | 'landscape')[];
+  bronzeBorders: boolean;
+  silverBorders: boolean;
+  achievementSize: number;
   /** Visible trophy games manually floated to the top. */
   pinnedAppIds: AppId[];
   /** Visible trophy games explicitly hidden from normal shelves. */
@@ -143,6 +148,8 @@ export interface QuietHoursV1 {
 }
 
 export interface NotificationPreferencesV1 {
+  soundPackId: string | null;
+  animation: 'slide' | 'fade' | 'rise' | 'zoom' | 'bounce' | 'flip' | 'none';
   enabled: boolean;
   durationMs: number;
   position: TrophyToastPosition;

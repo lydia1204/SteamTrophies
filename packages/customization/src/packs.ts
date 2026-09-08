@@ -14,12 +14,12 @@ export const DEFAULT_TROPHY_PACK_ID = 'builtin.classic';
 const PACK_ID_RE = /^[a-z0-9][a-z0-9._-]{2,63}$/;
 const SEMVERISH_RE = /^v?\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/;
 const USER_ASSET_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.webp']);
-const USER_AUDIO_EXTENSIONS = new Set(['.wav', '.ogg']);
+const USER_AUDIO_EXTENSIONS = new Set(['.wav', '.ogg', '.mp3']);
 const BUILTIN_ASSET_EXTENSIONS = new Set([...USER_ASSET_EXTENSIONS, '.svg']);
 const REQUIRED_KEYS: TrophyResourceKey[] = ['trophy.bronze', 'trophy.silver', 'trophy.gold', 'trophy.platinum'];
 
 export const BUILTIN_PACKS: InstalledTrophyPack[] = [
-  builtin('builtin.classic', 'SteamTrophies Classic', 'Original clean trophy cups.', 'classic'),
+  builtin('builtin.classic', 'Signature · New trophy artwork', 'User-supplied metallic trophy collection for the base design.', 'classic'),
   builtin('builtin.crest', 'Crest', 'Shield-like award crests with tier-specific silhouettes.', 'crest'),
   builtin('builtin.minimal', 'Minimal', 'Tiny high-legibility glyphs for dense interfaces and handhelds.', 'minimal'),
   builtin('builtin.crystal', 'Crystal', 'Faceted trophy crystals designed for larger TV and desktop UI.', 'crystal'),
@@ -209,7 +209,7 @@ export function resolveToastSoundCandidates(
 ): import('./types').ResolvedPackSound[] {
   const catalog = new Map(packs.filter((pack) => !(state.safeMode.externalPacksDisabled && pack.source === 'user')).map((pack) => [pack.manifest.id, pack]));
   const gamePackId = appId == null ? undefined : state.trophies.games[String(appId)]?.packId;
-  const ids = [gamePackId, state.trophies.globalPackId, DEFAULT_TROPHY_PACK_ID].filter((id): id is string => !!id);
+  const ids = [state.notifications.soundPackId, gamePackId, state.trophies.globalPackId, DEFAULT_TROPHY_PACK_ID].filter((id): id is string => !!id);
   const key = `toast.${tier}` as PackSoundResourceKey;
   const seen = new Set<string>();
   const result: import('./types').ResolvedPackSound[] = [];

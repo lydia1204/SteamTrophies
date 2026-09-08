@@ -15,13 +15,14 @@ export function ResponsiveBoundary({ surface, className, component, children, st
 
   useLayoutEffect(() => {
     const element = ref.current;
-    if (!element) return;
+    if (!element) return undefined;
+    const view = element.ownerDocument.defaultView ?? window;
     let frame = 0;
     const measure = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => {
+      view.cancelAnimationFrame(frame);
+      frame = view.requestAnimationFrame(() => {
         const rect = element.getBoundingClientRect();
-        const next = classifyResponsiveMetrics(rect.width || window.innerWidth, rect.height || window.innerHeight, surface);
+        const next = classifyResponsiveMetrics(rect.width || view.innerWidth, rect.height || view.innerHeight, surface);
         setMetrics((previous) => previous.width === next.width && previous.height === next.height && previous.widthBand === next.widthBand ? previous : next);
       });
     };
@@ -29,10 +30,10 @@ export function ResponsiveBoundary({ surface, className, component, children, st
     if (typeof ResizeObserver !== 'undefined') {
       const observer = new ResizeObserver(measure);
       observer.observe(element);
-      return () => { cancelAnimationFrame(frame); observer.disconnect(); };
+      return () => { view.cancelAnimationFrame(frame); observer.disconnect(); };
     }
-    window.addEventListener('resize', measure, { passive: true });
-    return () => { cancelAnimationFrame(frame); window.removeEventListener('resize', measure); };
+    view.addEventListener('resize', measure, { passive: true });
+    return () => { view.cancelAnimationFrame(frame); view.removeEventListener('resize', measure); };
   }, [surface]);
 
   const responsiveStyle = { ...responsiveCssVariables(metrics), ...style } as CSSProperties;
@@ -41,6 +42,7 @@ export function ResponsiveBoundary({ surface, className, component, children, st
       ref={ref}
       className={className}
       data-stt-root=""
+      data-stt-reduced-motion={customization.config.accessibility.reducedMotion ? 'true' : 'false'}
       data-stt-component={component}
       data-stt-surface={surface}
       data-stt-width-band={metrics.widthBand}

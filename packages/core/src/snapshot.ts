@@ -52,6 +52,7 @@ export function buildGameSnapshot(i: BuildSnapshotInput): GameSnapshot {
 
   const platinum = computePlatinum(i.appId, achievements, i.previous?.platinum, i.nowUnix);
   const base = {
+    rarityRevision: i.previous?.rarityRevision,
     schemaVersion: 1 as const,
     appId: i.appId,
     name: boundedText(i.name, `App ${i.appId}`),

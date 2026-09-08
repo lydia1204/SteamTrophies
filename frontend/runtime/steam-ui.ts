@@ -1,3 +1,4 @@
+import { withNativeDialog } from './popup-focus';
 type Unregisterable = { unregister(): void };
 
 /**
@@ -28,11 +29,11 @@ const steamUiClient = (): SteamClientShape | undefined => (globalThis as typeof 
 export async function pickTrophyPackDirectory(): Promise<string | null> {
   const open = steamUiClient()?.System?.OpenFileDialog;
   if (!open) throw new Error('Steam file picker is unavailable in this UI context.');
-  const result = await open({
+  const result = await withNativeDialog(() => open({
     bChooseDirectory: true,
     strTitle: 'Select SteamTrophies pack folder',
     rgFilters: [{ strFileTypeName: 'SteamTrophies trophy pack folder', rFilePatterns: ['*'], bUseAsDefault: true }],
-  });
+  }));
   return typeof result === 'string' && result.length > 0 ? result : null;
 }
 

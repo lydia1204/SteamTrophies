@@ -1,4 +1,7 @@
+import { jsonText } from './json-boundary';
+
 declare const backend: {
+  readGlobalRarityJson(appid: number): Promise<string | null>;
   readSettingsJson(): Promise<string | null>;
   writeSettingsJson(json: string): Promise<boolean>;
   readCustomizationJson(): Promise<string | null>;
@@ -23,4 +26,12 @@ declare const backend: {
   removeInstalledTrophyPack(packId: string): Promise<boolean>;
 };
 
-export const trophyBackend = backend;
+const jsonReads = new Set(['readGlobalRarityJson', 'readSettingsJson', 'readCustomizationJson', 'readDiscoveryJson', 'readIndexJson', 'readGameJson', 'listInstalledTrophyPacksJson', 'importTrophyPackDirectoryJson']);
+export const trophyBackend = new Proxy(backend, {
+  get(target, property, receiver) {
+    const value = Reflect.get(target, property, receiver);
+    return typeof property === 'string' && jsonReads.has(property) && typeof value === 'function'
+      ? async (...args: unknown[]) => jsonText(await value(...args))
+      : value;
+  },
+});

@@ -51,6 +51,6 @@
   },
   "$defs": {
     "imagePath": { "type": "string", "minLength": 1, "maxLength": 240, "pattern": "^(?!/)(?![A-Za-z]:)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!resources/)[^<>:\"|?*]+\\.(?:png|jpe?g|webp)$" },
-    "audioPath": { "type": "string", "minLength": 1, "maxLength": 240, "pattern": "^(?!/)(?![A-Za-z]:)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!resources/)[^<>:\"|?*]+\\.(?:wav|ogg)$" }
+    "audioPath": { "type": "string", "minLength": 1, "maxLength": 240, "pattern": "^(?!/)(?![A-Za-z]:)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!resources/)[^<>:\"|?*]+\\.(?:wav|ogg|mp3)$" }
   }
 }

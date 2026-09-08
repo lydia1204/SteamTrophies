@@ -169,6 +169,10 @@ export class CustomizationService {
     await this.commit({ ...this.state.config, notifications });
   }
 
+  async setLibraryAppearance(patch: Partial<Pick<typeof DEFAULT_CUSTOMIZATION_STATE.library, 'artworkStyle' | 'artworkFallbackOrder' | 'bronzeBorders' | 'silverBorders' | 'achievementSize'>>): Promise<void> {
+    await this.commit({ ...this.state.config, library: { ...this.state.config.library, ...patch } });
+  }
+
   async setTheme(themeId: string): Promise<void> {
     const theme = resolveTheme(themeId);
     await this.commit({ ...this.state.config, themeId: theme.id, safeMode: { ...this.state.config.safeMode, themesDisabled: false, themeFailureCount: 0, lastKnownGoodThemeId: theme.id } });

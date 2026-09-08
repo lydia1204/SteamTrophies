@@ -2,6 +2,30 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const core = require('../../../.test-build/packages/core/src/index.js');
 
+test('Platinum preserves the original completion identity after later catalogue additions', () => {
+  const records = [{id:'first',achieved:true,unlockedAtUnix:10},{id:'final',achieved:true,unlockedAtUnix:20}];
+  const original = core.computePlatinum(10, records);
+  assert.equal(original.completionAchievementId, 'final');
+  const expanded = [...records, {id:'new',achieved:true,unlockedAtUnix:30}, {id:'locked',achieved:false,unlockedAtUnix:null}];
+  const retained = core.computePlatinum(10, expanded, original);
+  assert.equal(retained.achieved, true); assert.equal(retained.unlockedAtUnix, 20);
+  assert.equal(core.completionAchievement(expanded, retained).id, 'final');
+});
+test('legacy Platinum resolves against its stored timestamp, not latest unlock or current completion', () => {
+  const platinum = { achieved:true, unlockedAtUnix:20 };
+  assert.equal(core.completionAchievement([{id:'original',achieved:true,unlockedAtUnix:20},{id:'later',achieved:true,unlockedAtUnix:30}],platinum).id,'original');
+  assert.equal(core.completionAchievement([{id:'a',achieved:true,unlockedAtUnix:20},{id:'b',achieved:true,unlockedAtUnix:20}],platinum),null);
+});
+test('Forager Completionist proves historical completion; names alone do not', () => {
+  const records = [{id:'feat83',name:'Completionist',achieved:true,unlockedAtUnix:20},{id:'later',achieved:false,unlockedAtUnix:null}];
+  const platinum = core.computePlatinum(751780,records);
+  assert.equal(platinum.achieved,true); assert.equal(platinum.completionAchievementId,'feat83'); assert.equal(platinum.unlockedAtUnix,20);
+  assert.equal(core.computePlatinum(10,records).achieved,false);
+  const previous = { achievements:records, platinum:{achieved:false} };
+  const next = {appId:751780,achievements:records,platinum,summary:{lastRefreshAtUnix:100,achievementCount:2,earnedCount:1}};
+  assert.equal(core.deriveEvents(previous,next).some(e=>e.type==='platinum_unlocked'),false);
+});
+
 const achievement = (overrides = {}) => ({
   id: 'ACH_1',
   name: 'First Blood',
@@ -23,6 +47,14 @@ test('rarity thresholds make genuinely rare achievements gold', () => {
   assert.equal(core.classifyRarity(20), 'silver');
   assert.equal(core.classifyRarity(20.01), 'bronze');
   assert.equal(core.classifyRarity(null), 'bronze');
+});
+
+test('import time is never substituted for an unknown unlock or platinum date', () => {
+  const snap = core.buildGameSnapshot({ appId: 100, name: 'Unknown dates', achievements: [achievement({ achieved: true })], nowUnix: 1234567890, staleTtlSeconds: 600 });
+  assert.equal(snap.achievements[0].unlockedAtUnix, null);
+  assert.equal(snap.achievements[0].firstObservedAtUnix, 1234567890);
+  assert.equal(snap.platinum.achieved, true);
+  assert.equal(snap.platinum.unlockedAtUnix, null);
 });
 
 test('0% games stay hidden under the default earned-only policy', () => {

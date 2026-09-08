@@ -11,14 +11,17 @@ export function VirtualGameList({ games, onOpen }: { games: GameSummary[]; onOpe
   const [viewportHeight, setViewportHeight] = useState(520);
   const ref = useRef<HTMLDivElement>(null);
   const scale = Math.max(1, customization.config.accessibility.textScale, customization.config.accessibility.iconScale);
-  const rowHeight = Math.max(88, Math.min(168, Math.ceil(88 * scale)));
+  const rowHeight = Math.ceil(Math.max(96, customization.config.library.achievementSize + 32) * scale);
+  const collectionKey = games.map(game => game.appId).join(',');
+  useLayoutEffect(() => { setScrollTop(0); if (ref.current) ref.current.scrollTop = 0; }, [collectionKey]);
 
   useLayoutEffect(() => {
     const element = ref.current;
-    if (!element) return;
+    if (!element) return undefined;
+    const view = element.ownerDocument.defaultView ?? window;
     const measure = () => setViewportHeight(Math.max(160, element.clientHeight));
     measure();
-    if (typeof ResizeObserver === 'undefined') { window.addEventListener('resize', measure, { passive: true }); return () => window.removeEventListener('resize', measure); }
+    if (typeof ResizeObserver === 'undefined') { view.addEventListener('resize', measure, { passive: true }); return () => view.removeEventListener('resize', measure); }
     const observer = new ResizeObserver(measure); observer.observe(element); return () => observer.disconnect();
   }, []);
 
@@ -29,8 +32,8 @@ export function VirtualGameList({ games, onOpen }: { games: GameSummary[]; onOpe
   }, [games.length, rowHeight, scrollTop, viewportHeight]);
 
   return (
-    <div ref={ref} className="st-virtual-list" onScroll={(e) => setScrollTop(e.currentTarget.scrollTop)} data-stt-component="virtual-game-list">
-      <div className="st-virtual-spacer" style={{ height: games.length * rowHeight }}>
+    <div ref={ref} className="st-virtual-list" style={{ '--st-game-art-width': customization.config.library.artworkStyle === 'landscape' ? '150px' : '48px' } as import('react').CSSProperties} onScroll={(e) => setScrollTop(e.currentTarget.scrollTop)} data-stt-component="virtual-game-list">
+      <div className="st-virtual-spacer" style={{ height: games.length * rowHeight, '--stt-game-row-height': `${rowHeight}px` } as import('react').CSSProperties}>
         <div style={{ transform: `translateY(${range.first * rowHeight}px)` }}>
           {games.slice(range.first, range.last).map((game) => <div key={game.appId} style={{ minHeight: rowHeight }}><GameRow game={game} onOpen={() => onOpen(game.appId)} /></div>)}
         </div>

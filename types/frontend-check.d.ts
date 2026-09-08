@@ -27,10 +27,15 @@ declare module 'react-dom/client' {
   export interface Root { render(node: unknown): void; unmount(): void; }
   export function createRoot(container: Element | DocumentFragment): Root;
 }
+declare module 'react-dom' { export function createPortal(children: any, container: Element): any; }
 
 declare module 'millennium' {
   export function definePlugin(factory: () => unknown): unknown;
   export const ErrorBoundary: any;
+  export const showModal: (content: any, parent?: EventTarget, props?: any) => { Close(): void };
+  export const toaster: { toast(data: { title: any; body: any; duration?: number; playSound?: boolean; showToast?: boolean; showNewIndicator?: boolean; onClick?: () => void }): { dismiss(): void } };
+  export const callOriginal: symbol;
+  export function replacePatch(object: any, property: string, handler: (args: any[]) => any): { unpatch(): void };
   export const FocusRing: any;
   export const Focusable: any;
   export const ReorderableList: any;

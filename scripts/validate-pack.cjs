@@ -13,7 +13,7 @@ const SEMVERISH_RE = /^v?\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/;
 const REQUIRED = ['trophy.bronze', 'trophy.silver', 'trophy.gold', 'trophy.platinum'];
 const SOUND_KEYS = ['toast.bronze', 'toast.silver', 'toast.gold', 'toast.platinum'];
 const IMAGE_EXTS = new Set(['.png', '.jpg', '.jpeg', '.webp']);
-const AUDIO_EXTS = new Set(['.wav', '.ogg']);
+const AUDIO_EXTS = new Set(['.wav', '.ogg', '.mp3']);
 const FILE_EXTS = new Set([...IMAGE_EXTS, ...AUDIO_EXTS]);
 
 function fail(message) { throw new Error(message); }
@@ -88,6 +88,15 @@ function checkMagic(filename, buffer) {
   else if (ext === '.webp' && buffer.subarray(0,4).toString('ascii') === 'RIFF' && buffer.subarray(8,12).toString('ascii') === 'WEBP') valid = true;
   else if (ext === '.wav' && buffer.subarray(0,4).toString('ascii') === 'RIFF' && buffer.subarray(8,12).toString('ascii') === 'WAVE') valid = true;
   else if (ext === '.ogg' && buffer.subarray(0,4).toString('ascii') === 'OggS') valid = true;
+  else if (ext === '.mp3') {
+    let offset = 0;
+    if (buffer.subarray(0,3).toString('ascii') === 'ID3') {
+      if (buffer.length < 14 || buffer[3] < 2 || buffer[3] > 4 || [...buffer.subarray(6,10)].some(v => v >= 128)) throw new Error('Invalid MP3 ID3 header');
+      offset = 10 + [...buffer.subarray(6,10)].reduce((size, v) => size * 128 + v, 0) + (buffer[3] === 4 && (buffer[5] & 16) ? 10 : 0);
+    }
+    const b = buffer[offset + 1], c = buffer[offset + 2];
+    valid = offset + 4 <= buffer.length && buffer[offset] === 255 && (b & 224) === 224 && ((b >> 3) & 3) !== 1 && ((b >> 1) & 3) !== 0 && (c >> 4) > 0 && (c >> 4) < 15 && ((c >> 2) & 3) !== 3;
+  }
   if (!valid) fail(`File contents do not match supported declared type: ${filename}`);
   validateImageDimensions(filename, buffer);
 }

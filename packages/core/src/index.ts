@@ -11,3 +11,4 @@ export * from './snapshot';
 export * from './summary';
 
 export * from './settings';
+export * from './repair';

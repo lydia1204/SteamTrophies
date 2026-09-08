@@ -3,6 +3,20 @@ local millennium = require("millennium")
 local storage = require("lib.storage")
 local packs = require("lib.packs")
 local json = require("json")
+local rarity = require("lib.rarity")
+
+---@ffi
+---@return boolean
+function notifyOutsidePointerDown()
+    -- Relay only a click signal, never webpage content, coordinates, or URLs.
+    local ok = pcall(millennium.call_frontend_method, "outsideSteamPointerDown", {})
+    return ok
+end
+
+---@ffi
+---@param appid number
+---@return string|nil
+function readGlobalRarityJson(appid) return rarity.read(appid) end
 
 ---@ffi
 ---@return string|nil

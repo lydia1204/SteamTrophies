@@ -38,7 +38,11 @@ for (const file of files) {
   const text = fs.readFileSync(file, 'utf8');
   const rel = path.relative(ROOT, file).replaceAll('\\', '/');
   for (const [pattern, label] of forbidden) if (pattern.test(text)) violations.push(`${rel}: ${label}`);
-  for (const match of text.matchAll(urlPattern)) if (!allowedHosts.has(match[1])) violations.push(`${rel}: unexpected hard-coded network host ${match[1]}`);
+  for (const match of text.matchAll(urlPattern)) {
+    // Reviewed public Valve image endpoint, scoped to the game-artwork resolver only.
+    const approvedArtwork = rel === 'frontend/runtime/library.ts' && match[1] === 'shared.steamstatic.com';
+    if (!allowedHosts.has(match[1]) && !approvedArtwork) violations.push(`${rel}: unexpected hard-coded network host ${match[1]}`);
+  }
   if (rel.startsWith('frontend/') && /x-webapi-key/i.test(text)) violations.push(`${rel}: Steam Web API key handling must stay outside the frontend`);
 }
 
