@@ -80,7 +80,7 @@ jobs:
         run: npm run lua:validate
 
       - name: Build package
-        run: npm run styles:generate && npx starlight --release --of ./dist pack
+        run: mkdir -p dist && npm run styles:generate && npx starlight --release --of ./dist pack
 
       - name: Verify staged package
         run: npx starlight verify ./dist/dev.steamtrophies.client.star

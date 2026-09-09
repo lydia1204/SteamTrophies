@@ -424,6 +424,7 @@ npm run build
 
 ```bash
 npm run styles:generate
+mkdir -p dist
 npx starlight --release --of ./dist pack
 npx starlight verify ./dist/dev.steamtrophies.client.star
 ```
