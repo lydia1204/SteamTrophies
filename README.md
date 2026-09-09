@@ -2,11 +2,11 @@
 
 A customizable trophy cabinet for Steam: rarity-based Bronze, Silver and Gold awards, a synthetic Platinum for completion, and a fast, local-first library.
 
-**0.4.0-rc.2 desktop — experimental release candidate, not a stable release.** SteamTrophies presents Steam achievements; it does not unlock, relock or modify achievements on Steam. It is not affiliated with Valve, Sony, PlayStation or Millennium. The separate read-only Decky adapter remains at 0.4.0-rc.1.
+**0.4.0-rc.3 desktop — experimental release candidate, not a stable release.** SteamTrophies presents Steam achievements; it does not unlock, relock or modify achievements on Steam. It is not affiliated with Valve, Sony, PlayStation or Millennium. The separate read-only Decky adapter remains at 0.4.0-rc.1.
 
 The September 9 update focuses on presentation, settings, recap and achievement browsing. **Toast delivery and the Steam overlay investigation are deferred**, not fixed by this update. See the [new settings guide and validation record](docs/SETTINGS_RECAP_0.4.0-rc.2.md).
 
-The **rc.3 source follow-up** adds compact controls, real help tooltips, trophy tints, color-blind support, animation speed and pin/refresh feedback. [Changes and validation](docs/CONTROLS_0.4.0-rc.3.md). The latest published download above is still rc.2 until an rc.3 artifact is published. A **standalone no-injection edition, signed Windows `.exe` installer and in-app updates are required future work, not available in this patch**; [edition plan](docs/EDITIONS_AND_UPDATES.md).
+The **rc.3 follow-up** adds compact controls, real help tooltips, trophy tints, color-blind support, animation speed and pin/refresh feedback. [Download rc.3](https://github.com/lydia1204/SteamTrophies/releases/tag/v0.4.0-rc.3) · [Changes and validation](docs/CONTROLS_0.4.0-rc.3.md). A **standalone no-injection edition, signed Windows `.exe` installer and in-app updates are required future work, not available in this patch**; [edition plan](docs/EDITIONS_AND_UPDATES.md).
 
 [Downloads and release notes](https://github.com/lydia1204/SteamTrophies/releases) · [Issues](https://github.com/lydia1204/SteamTrophies/issues) · [Security policy](SECURITY.md)
 
@@ -468,7 +468,8 @@ Further documentation:
 - [Storage](docs/STORAGE.md), [security](docs/SECURITY.md), [packs](docs/RESOURCE_PACKS.md)
 - [Platform matrix](docs/PLATFORM_MATRIX.md), [Big Picture](docs/BIG_PICTURE.md), [responsive compatibility](docs/RESPONSIVE_COMPATIBILITY.md), [performance](docs/PERFORMANCE.md)
 - [Latest desktop QA](docs/DESKTOP_QA_2026-09-08.md), [settings QA](docs/SETTINGS_QA_2026-09-07.md), [runtime release gates](docs/RUNTIME_RELEASE_GATES.md)
-- [Current candidate release notes and artifact hashes](docs/RELEASE_NOTES_0.4.0-rc.2.md)
+- [Current candidate release notes and artifact hashes](docs/RELEASE_NOTES_0.4.0-rc.3.md)
+- [Previous rc.2 candidate](docs/RELEASE_NOTES_0.4.0-rc.2.md)
 - [Previous rc.1 candidate](docs/RELEASE_NOTES_0.4.0-rc.1.md)
 
 Older pass reports describe dated snapshots, not a promise that every roadmap feature is shipped. This README and the latest QA report clarify current behavior.

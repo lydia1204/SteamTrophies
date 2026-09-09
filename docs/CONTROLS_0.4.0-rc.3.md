@@ -2,6 +2,8 @@
 
 Experimental desktop UI follow-up. The separate Decky adapter is unchanged. This does not repair Steam overlay or in-game toast delivery.
 
+Published: [rc.3 prerelease and checksums](https://github.com/lydia1204/SteamTrophies/releases/tag/v0.4.0-rc.3). [Cross-platform CI and package build passed](https://github.com/lydia1204/SteamTrophies/actions/runs/34407428513). The downloaded artifact passed local Starlight verification, and GitHub's published SHA-256 matches it. Local installation remains pending until Steam is fully closed; this pass did not refresh/reimport or modify the live trophy data.
+
 ## Changes
 
 - Settings navigation: Back now sits beside Close on the right. Back returns to your trophy library; Close closes the whole trophy window.
