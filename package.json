@@ -35,9 +35,9 @@
   ],
   "devDependencies": {
     "@steambrew/starlight": "1.1.4",
-    "@types/react": "19.1.1",
-    "@types/react-dom": "19.1.1",
-    "typescript": "5.8.3"
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
+    "typescript": "7.0.2"
   },
   "engines": {
     "node": ">=22 <27"
