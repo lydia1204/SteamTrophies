@@ -3,7 +3,8 @@ import { useCustomizationState } from '../../state/customization-hooks';
 import { customizationService } from '../../state/customization-service';
 import { notificationService } from '../../state/notification-service';
 import { useSyncExternalStore } from 'react';
-import { SettingSwitch } from './SettingControls';
+import { SettingHelp, SettingSwitch } from './SettingControls';
+import { TrophyGlyph } from '../TrophyGlyph';
 
 export function NotificationSettings() {
   const state = useCustomizationState();
@@ -13,6 +14,7 @@ export function NotificationSettings() {
     <section className="stt-settings-section" data-stt-component="notification-settings">
       <header><div><h3>Trophy notifications</h3><p>SteamTrophies owns its toast presentation and sounds without replacing Steam's global notification system.</p></div></header>
       <div className="stt-settings-grid">
+        <label className="stt-field">Toast glow <SettingHelp text="Choose no glow, a soft glow, or a brighter tier-colored glow. This changes our toast appearance, not Steam overlay delivery." /><select value={state.config.visual.toastGlow} onChange={e => void customizationService.setVisual({toastGlow:e.target.value as typeof state.config.visual.toastGlow})}><option value="off">Off</option><option value="soft">Soft</option><option value="bright">Bright</option></select></label>
         <label className="stt-field"><span>Sound pack (independent of trophy artwork)</span><select value={n.soundPackId ?? ''} onChange={e => void customizationService.setNotifications({ soundPackId: e.target.value || null })}><option value="">Follow trophy pack</option>{state.packs.filter(pack => Object.keys(pack.manifest.sounds ?? {}).length).map(pack => <option key={pack.manifest.id} value={pack.manifest.id}>{pack.manifest.name}</option>)}</select></label>
         <label className="stt-field"><span>Toast animation</span><select value={n.animation} onChange={e => void customizationService.setNotifications({ animation: e.target.value as typeof n.animation })}>{(['slide','fade','rise','zoom','bounce','flip','none'] as const).map(value => <option key={value} value={value}>{value[0].toUpperCase() + value.slice(1)}</option>)}</select></label>
         <p className="st-settings-help">Position applies inside the trophy window. Outside it, Steam places native notifications using its own notification settings. Packs support WAV, OGG and MP3 sounds.</p>
@@ -31,7 +33,8 @@ export function NotificationSettings() {
           <label className="stt-field"><span>Quiet until</span><input type="time" value={minuteToTime(n.quietHours.endMinute)} onChange={(e) => void customizationService.setNotifications({ quietHours: { ...n.quietHours, endMinute: timeToMinute(e.currentTarget.value) } })} /></label>
         </>}
       </div>
-      <div className="stt-test-toast-row">{(['bronze','silver','gold','platinum'] as TrophyTier[]).map((tier) => <button key={tier} className="st-mini-button" onClick={() => void notificationService.test(tier)}>Test {tier}</button>)}</div>
+      <div className="stt-toast-preview" data-animation={n.animation} aria-label="Live toast appearance preview"><div key={`${n.animation}-${state.config.visual.animationSpeed}-${state.config.visual.toastGlow}`} className="stt-toast stt-toast-gold"><TrophyGlyph tier="gold" size={36} /><div className="stt-toast-copy"><span>Appearance preview</span><strong>Trophy earned</strong><small>No achievement or sound is triggered.</small></div><TrophyGlyph tier="gold" size={24} /></div></div>
+      <div className="stt-test-toast-row">{(['bronze','silver','gold','platinum'] as TrophyTier[]).map((tier) => <button key={tier} className="st-mini-button" title={`Preview ${tier} sound and notification without changing achievements`} onClick={() => void notificationService.test(tier)}>Test {tier}</button>)}</div>
       <button title="Test outside window in 10 seconds" className="st-mini-button" onClick={() => notificationService.scheduleNativeTest()}>Test outside window in 10 seconds</button>
       <p className="st-settings-help">Use the delayed test, close Trophies, and return to your game. This changes no achievements. In-game visuals require a working Steam overlay.</p>
       <details className="st-delivery-diagnostics"><summary>Recent notification delivery</summary>{delivery.length ? delivery.map((line, index) => <p key={`${index}-${line}`}>{line}</p>) : <p>No delivery attempts since this startup.</p>}</details>

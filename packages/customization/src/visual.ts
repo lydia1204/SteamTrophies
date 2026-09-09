@@ -1,6 +1,15 @@
 import type { VisualPreferencesV1 } from './types';
 
+// Alternative palettes are paired with letter markers; color is never the only tier cue.
+export const ACCESSIBLE_TIER_PALETTES = {
+  'red-green': { bronze:'#e69f00', silver:'#cccccc', gold:'#f0e442', platinum:'#56b4e9' },
+  'blue-yellow': { bronze:'#d55e00', silver:'#cccccc', gold:'#cc79a7', platinum:'#009e73' },
+  monochrome: { bronze:'#999999', silver:'#bbbbbb', gold:'#dddddd', platinum:'#ffffff' },
+} as const;
+
 export const DEFAULT_VISUAL: VisualPreferencesV1 = {
+  toggleStyle:'switch', settingsOrganization:'tabs', helpCursor:true, animationSpeed:1,
+  colorBlindMode:'off', trophyColors:{}, toastGlow:'soft',
   recapPeriod:'week', recapIncludeHidden:false,
   rememberScreen:false, blurBackground:false, showScrollbar:true, scrollbarColor:'#56616e', scrollbarWidth:6,
   showReleaseYearLibrary:false, showReleaseYearDetail:false, showCompletionRarity:true, showGroupRarity:true,
@@ -16,6 +25,13 @@ function colors(value:unknown, allowed:readonly string[]) {
 export function validateVisual(value:unknown): VisualPreferencesV1 {
   const raw = value && typeof value === 'object' ? value as Partial<VisualPreferencesV1> : {};
   return {
+    toggleStyle:raw.toggleStyle === 'checkbox' ? 'checkbox' : 'switch',
+    settingsOrganization:raw.settingsOrganization === 'sidebar' ? 'sidebar' : 'tabs',
+    helpCursor:raw.helpCursor !== false,
+    animationSpeed:Number.isFinite(raw.animationSpeed) ? Math.max(.25,Math.min(3,raw.animationSpeed!)) : 1,
+    colorBlindMode:raw.colorBlindMode === 'red-green' || raw.colorBlindMode === 'blue-yellow' || raw.colorBlindMode === 'monochrome' ? raw.colorBlindMode : 'off',
+    trophyColors:colors(raw.trophyColors,['bronze','silver','gold','platinum']),
+    toastGlow:raw.toastGlow === 'off' || raw.toastGlow === 'bright' ? raw.toastGlow : 'soft',
     recapPeriod:raw.recapPeriod === 'month' || raw.recapPeriod === 'year' ? raw.recapPeriod : 'week', recapIncludeHidden:raw.recapIncludeHidden === true,
     rememberScreen:raw.rememberScreen === true, blurBackground:raw.blurBackground === true, showScrollbar:raw.showScrollbar !== false,
     scrollbarColor:color(raw.scrollbarColor) ? raw.scrollbarColor : DEFAULT_VISUAL.scrollbarColor,

@@ -6,6 +6,8 @@ A customizable trophy cabinet for Steam: rarity-based Bronze, Silver and Gold aw
 
 The September 9 update focuses on presentation, settings, recap and achievement browsing. **Toast delivery and the Steam overlay investigation are deferred**, not fixed by this update. See the [new settings guide and validation record](docs/SETTINGS_RECAP_0.4.0-rc.2.md).
 
+The **rc.3 source follow-up** adds compact controls, real help tooltips, trophy tints, color-blind support, animation speed and pin/refresh feedback. [Changes and validation](docs/CONTROLS_0.4.0-rc.3.md). The latest published download above is still rc.2 until an rc.3 artifact is published. A **standalone no-injection edition, signed Windows `.exe` installer and in-app updates are required future work, not available in this patch**; [edition plan](docs/EDITIONS_AND_UPDATES.md).
+
 [Downloads and release notes](https://github.com/lydia1204/SteamTrophies/releases) · [Issues](https://github.com/lydia1204/SteamTrophies/issues) · [Security policy](SECURITY.md)
 
 > [!IMPORTANT]

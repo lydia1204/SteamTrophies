@@ -19,7 +19,7 @@ const BUILTIN_ASSET_EXTENSIONS = new Set([...USER_ASSET_EXTENSIONS, '.svg']);
 const REQUIRED_KEYS: TrophyResourceKey[] = ['trophy.bronze', 'trophy.silver', 'trophy.gold', 'trophy.platinum'];
 
 export const BUILTIN_PACKS: InstalledTrophyPack[] = [
-  builtin('builtin.classic', 'Signature · New trophy artwork', 'User-supplied metallic trophy collection for the base design.', 'classic'),
+  builtin('builtin.classic', 'Signature', 'User-supplied metallic trophy collection for the base design.', 'classic'),
   builtin('builtin.crest', 'Crest', 'Shield-like award crests with tier-specific silhouettes.', 'crest'),
   builtin('builtin.minimal', 'Minimal', 'Tiny high-legibility glyphs for dense interfaces and handhelds.', 'minimal'),
   builtin('builtin.crystal', 'Crystal', 'Faceted trophy crystals designed for larger TV and desktop UI.', 'crystal'),

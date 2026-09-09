@@ -16,7 +16,7 @@ function loadSheet(name: string): Promise<string> {
 const trophies: Record<TrophyTier, string> = {
   platinum: '65 447 272 328', gold: '362 447 260 328', silver: '649 447 264 328', bronze: '935 447 264 328',
 };
-const controls = { refresh: '26 349 98 86', settings: '151 133 104 95', filter: '675 135 100 91', pin:'551 550 86 86', hidden:'414 552 97 83', visible:'286 559 96 68', project:'808 548 97 88', recap:'944 657 85 85', artwork:'290 765 87 73', down:'809 256 89 56', back:'419 249 65 76' };
+const controls = { refresh: '547 1039 94 84', settings: '151 133 104 95', filter: '675 135 100 91', pin:'551 550 86 86', hidden:'414 552 97 83', visible:'286 559 96 68', project:'808 548 97 88', recap:'944 657 85 85', artwork:'290 765 87 73', down:'809 256 89 56', back:'419 249 65 76' };
 let nextFilter = 0;
 export function SheetIcon({ tier, control, size = 24, tint = false }: { tier?: TrophyTier; control?: keyof typeof controls; size?: number; tint?: boolean }) {
   const name = tier ? 'trophy' : 'control';

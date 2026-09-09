@@ -1,3 +1,4 @@
+import { ACCESSIBLE_TIER_PALETTES } from '../../packages/customization/src/visual';
 import {
   addTrophyProject,
   BUILTIN_PACKS,
@@ -259,14 +260,18 @@ export class CustomizationService {
     const theme = custom ? { ...configured, tokens: { ...configured.tokens, color: { ...configured.tokens.color, ...v.customColors } } } : configured;
     const variables = compileThemeCssVariables(theme, surface, this.state.config.accessibility);
     for (const tier of ['bronze','silver','gold','platinum'] as const) {
-      const inherited = v.themeBorderColors ? theme.tokens.color[tier] : DEFAULT_THEME.tokens.color[tier];
+      const inherited = v.colorBlindMode !== 'off' ? ACCESSIBLE_TIER_PALETTES[v.colorBlindMode][tier] : v.themeBorderColors ? theme.tokens.color[tier] : DEFAULT_THEME.tokens.color[tier];
       variables[`--stt-tile-${tier}`] = v.tileColors[tier] ?? inherited;
       variables[`--stt-tooltip-${tier}`] = v.tooltipColors[tier] ?? inherited;
+      variables[`--stt-tier-wash-${tier}`] = `${v.trophyColors[tier] ?? inherited}38`;
     }
     variables['--stt-scrollbar-width'] = v.showScrollbar ? `${v.scrollbarWidth}px` : '0px';
     variables['--stt-scrollbar-color'] = v.scrollbarColor;
+    variables['--stt-help-cursor'] = v.helpCursor ? 'help' : 'default';
+    for (const [name, seconds] of Object.entries({shine:2.8,pulse:2.4,aura:2,toast:.45,bounce:.65})) variables[`--stt-speed-${name}`] = `${seconds / v.animationSpeed}s`;
+    variables['--stt-toast-glow'] = v.toastGlow === 'off' || this.state.config.accessibility.highContrast ? 'none' : `0 0 ${v.toastGlow === 'bright' ? 20 : 7}px var(--st-toast-color)`;
     variables['--stt-background-image'] = custom ? v.gradient !== 'none' ? `linear-gradient(${v.gradient === 'diagonal' ? 135 : 90}deg,${theme.tokens.color.background},${v.gradientColor})` : 'none' : theme.previewColors ? `linear-gradient(120deg,${theme.previewColors.map(c => `${c}22`).join(',')})` : 'none';
-    variables['--stt-background-animation'] = custom && v.gradient !== 'none' && v.backgroundAnimation === 'drift' && !this.state.config.accessibility.reducedMotion ? 'st-background-drift 18s ease-in-out infinite alternate' : 'none';
+    variables['--stt-background-animation'] = custom && v.gradient !== 'none' && v.backgroundAnimation === 'drift' && !this.state.config.accessibility.reducedMotion ? `st-background-drift ${18 / v.animationSpeed}s ease-in-out infinite alternate` : 'none';
     if (this.state.config.accessibility.highContrast) {
       variables['--stt-background-image'] = 'none';
       variables['--stt-background-animation'] = 'none';

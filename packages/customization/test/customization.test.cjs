@@ -34,7 +34,7 @@ test('English catalog interpolates values and pseudo locale expands visible stri
   assert.equal(pseudoLocalize('Open {count} games').includes('{count}'), true);
 });
 
-test('desktop appearance migration preserves user lists and defaults to capsules without optional borders', () => {
+test('desktop appearance migration preserves user lists and enables new-user tier borders', () => {
   const state = structuredClone(DEFAULT_CUSTOMIZATION_STATE);
   state.library = { pinnedAppIds: [105600], hiddenAppIds: [214420], trackedAppIds: [] };
   const migrated = validateCustomizationState(state);
@@ -46,8 +46,12 @@ test('desktop appearance migration preserves user lists and defaults to capsules
   state.library.artworkFallbackOrder = ['icon','icon','not-art','capsule'];
   assert.equal(validateCustomizationState(state).library.artworkStyle, 'landscape');
   assert.deepEqual(validateCustomizationState(state).library.artworkFallbackOrder, ['icon','capsule','landscape']);
-  assert.equal(migrated.library.bronzeBorders, false);
-  assert.equal(migrated.library.silverBorders, false);
+  assert.equal(migrated.library.bronzeBorders, true);
+  assert.equal(migrated.library.silverBorders, true);
+  state.library.bronzeBorders = false;
+  state.library.silverBorders = false;
+  assert.equal(validateCustomizationState(state).library.bronzeBorders, false);
+  assert.equal(validateCustomizationState(state).library.silverBorders, false);
   assert.equal(migrated.library.achievementSize, 44);
   state.library.achievementSize = 10000;
   assert.equal(validateCustomizationState(state).library.achievementSize, 72);

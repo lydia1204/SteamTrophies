@@ -1,7 +1,7 @@
 [plugin]
 id = "dev.steamtrophies.client"
 name = "Steam Trophies"
-version = "0.4.0-rc.2"
+version = "0.4.0-rc.3"
 author = "Scarlett / Lydia + contributors"
 description = "PlayStation-style Steam trophies with rarity-driven tiers, fast cached browsing, and synthetic Platinum trophies."
 

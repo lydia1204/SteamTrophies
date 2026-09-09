@@ -9,7 +9,7 @@ export const BUILTIN_THEMES: readonly ThemeTokensV1[] = Object.freeze([
   DEFAULT_THEME,
   ...[
     ['portal','Portal Ice',['#65cbff','#ffad65']], ['lambda','Lambda Amber',['#ffb454','#e8ddbf']],
-    ['retro-steam','Classic Steam Green',['#b3bb87','#90a090']], ['neon-arcade','Neon Arcade',['#fa80da','#73edfa','#a69aff']],
+    ['retro-steam','Classic Green',['#b3bb87','#90a090']], ['neon-arcade','Neon Arcade',['#fa80da','#73edfa','#a69aff']],
     ['synthwave','Synthwave',['#ff83c9','#b093ff','#75d9ff']], ['forest','Forest Quest',['#9fdda4','#d4c58d']],
     ['crimson','Crimson Citadel',['#ff8e9c','#c5accf']], ['ocean','Ocean Depths',['#69e3e0','#8bb5ff']],
     ['pride-rainbow','Rainbow Pride',['#ff7878','#ffb66b','#ffed87','#83d89c','#85b4ff','#c49df1']],

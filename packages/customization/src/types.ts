@@ -206,6 +206,13 @@ export interface CustomizationStateV2 {
 }
 
 export interface VisualPreferencesV1 {
+  toggleStyle: 'switch' | 'checkbox';
+  settingsOrganization: 'tabs' | 'sidebar';
+  helpCursor: boolean;
+  animationSpeed: number;
+  colorBlindMode: 'off' | 'red-green' | 'blue-yellow' | 'monochrome';
+  trophyColors: Partial<Record<TrophyTier, string>>;
+  toastGlow: 'off' | 'soft' | 'bright';
   recapPeriod: 'week' | 'month' | 'year';
   recapIncludeHidden: boolean;
   rememberScreen: boolean;

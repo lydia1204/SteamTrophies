@@ -49,17 +49,16 @@ export function TrophyApp({ surface = 'desktop', onClose }: { surface?: SurfaceK
   }
 
   if (showCustomize) return <ResponsiveBoundary surface={surface} className="st-app st-settings-app" component="trophy-settings" style={themeStyle}>
-    <header className="st-redesign-header st-app-header"><div className="st-app-header-actions"><button title="Back to trophies" className="st-icon-button" aria-label="Back to trophies" onClick={() => setShowCustomize(false)}>‹</button><h1>Settings</h1></div>{onClose && <button title="Close trophies" className="st-icon-button" onClick={onClose} aria-label="Close trophies">×</button>}</header>
+    <header className="st-redesign-header st-app-header"><h1>Settings</h1><div className="st-app-header-actions"><button title="Back to trophies" className="st-icon-button" aria-label="Back to trophies" onClick={() => setShowCustomize(false)}><SheetIcon control="back" /></button>{onClose && <button title="Close trophies" className="st-icon-button" onClick={onClose} aria-label="Close trophies">×</button>}</div></header>
     <CustomizationHub surface={surface} />
   </ResponsiveBoundary>;
 
   return (
     <ResponsiveBoundary surface={surface} className={`st-app st-surface-${surface}`} component="trophy-library" style={themeStyle}>
       <header className="st-app-header st-redesign-header"><SummaryBar index={state.index} hero /><div className="st-app-header-actions">
-        <button className="st-icon-button" disabled={state.repairing || state.discovering || state.refreshing} title="Refresh real rarity and trophy tiers without reimporting" aria-label="Refresh trophy rarity" onClick={() => void trophyService.repairCachedRarity()}><SheetIcon control="refresh" /></button>
+        <button className="st-icon-button st-refresh-button" aria-busy={state.repairing || state.discovering || state.refreshing} disabled={state.repairing || state.discovering || state.refreshing} title="Refresh real rarity and trophy tiers without reimporting" aria-label="Refresh trophy rarity" onClick={() => void trophyService.repairCachedRarity()}><SheetIcon control="refresh" />{(state.refreshing || state.repairing || state.discovering) && <span className="st-sync-dot" aria-hidden="true" />}</button>
         <button className="st-icon-button" title="Weekly, monthly and yearly trophy recap" aria-label="Open trophy recap" onClick={() => setShowRecap(true)}><SheetIcon control="recap" /></button>
         <button className="st-icon-button" title="Settings and customization" aria-label="Settings and customization" aria-expanded={showCustomize} onClick={() => setShowCustomize(v => !v)}><SheetIcon control="settings" /></button>
-        {(state.refreshing || state.repairing || state.discovering) && <span className="st-sync-dot" title={message('app.refresh')} />}
         {onClose && <button title="Close trophies" className="st-icon-button" onClick={onClose} aria-label="Close trophies">×</button>}
       </div></header>
       <div className="st-library-tools" data-stt-component="library-tools">

@@ -17,7 +17,7 @@ export function CustomizationHub({ surface }: { surface: SurfaceKind }) {
   const [tab, updateTab] = useState(() => remember && (rememberedTab !== 'layout' || surface === 'big_picture') ? rememberedTab : 'packs');
   const setTab = (value:string) => { rememberedTab = value; updateTab(value); };
   return (
-    <div className="stt-customization-hub" data-stt-component="customization-hub">
+    <div className="stt-customization-hub" data-settings-organization={customization.config.visual.settingsOrganization} data-stt-component="customization-hub">
       {customization.error && <div className="st-error" role="alert">{customization.error} <button className="st-mini-button" title="Retry saving the currently visible settings" onClick={() => { void customizationService.setVisual({}).catch(() => {}); }}>Retry save</button></div>}
       <nav className="st-settings-tabs" aria-label="Settings sections">{[['packs','Trophy packs'],['appearance','Appearance'],['notifications','Notifications'],['library','Library & data'],['diagnostics','Diagnostics'],...(surface === 'big_picture' ? [['layout','Layout']] : [])].map(([id,label]) => <button title={label} key={id} className="st-mini-button" aria-pressed={tab === id} onClick={() => setTab(id)}>{label}</button>)}</nav>
       <div className="st-settings-content">

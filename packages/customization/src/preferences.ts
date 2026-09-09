@@ -1,6 +1,6 @@
 import type { LibraryPresentationStateV1, NotificationPreferencesV1, QuietHoursV1 } from './types';
 
-export const DEFAULT_LIBRARY_PRESENTATION: LibraryPresentationStateV1 = Object.freeze({ pinnedAppIds: [], hiddenAppIds: [], trackedAppIds: [], artworkStyle: 'capsule', artworkFallbackOrder: ['landscape', 'capsule', 'icon'] as LibraryPresentationStateV1['artworkFallbackOrder'], bronzeBorders: false, silverBorders: false, achievementSize: 44, showHeaderTotal: false, showOriginalPlatinumAchievement: false, allowFallbackShapeChange: false, gameArtwork: {}, achievementGroups:{} });
+export const DEFAULT_LIBRARY_PRESENTATION: LibraryPresentationStateV1 = Object.freeze({ pinnedAppIds: [], hiddenAppIds: [], trackedAppIds: [], artworkStyle: 'capsule', artworkFallbackOrder: ['landscape', 'capsule', 'icon'] as LibraryPresentationStateV1['artworkFallbackOrder'], bronzeBorders: true, silverBorders: true, achievementSize: 44, showHeaderTotal: false, showOriginalPlatinumAchievement: false, allowFallbackShapeChange: false, gameArtwork: {}, achievementGroups:{} });
 export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferencesV1 = Object.freeze({
   animation: 'slide',
   soundPackId: null,
@@ -45,7 +45,7 @@ export function validateLibraryPresentation(value: unknown): LibraryPresentation
     const fallbackOrder = Array.isArray(entry.fallbackOrder) ? [...new Set(entry.fallbackOrder)].filter(v => ['capsule','icon','landscape'].includes(v)) : [];
     gameArtwork[id] = { style:entry.style, fallbackOrder };
   }
-  return { pinnedAppIds: sanitizeAppIds(raw.pinnedAppIds).filter(id => !hiddenAppIds.includes(id)), hiddenAppIds, trackedAppIds: sanitizeAppIds(raw.trackedAppIds), artworkStyle: raw.artworkStyle === 'icon' || raw.artworkStyle === 'landscape' ? raw.artworkStyle : 'capsule', artworkFallbackOrder, bronzeBorders: raw.bronzeBorders === true, silverBorders: raw.silverBorders === true, achievementSize: Number.isFinite(raw.achievementSize) ? Math.max(32, Math.min(72, Math.round(raw.achievementSize!))) : 44, showHeaderTotal: raw.showHeaderTotal === true, showOriginalPlatinumAchievement: raw.showOriginalPlatinumAchievement === true, allowFallbackShapeChange: raw.allowFallbackShapeChange === true, gameArtwork, achievementGroups };
+  return { pinnedAppIds: sanitizeAppIds(raw.pinnedAppIds).filter(id => !hiddenAppIds.includes(id)), hiddenAppIds, trackedAppIds: sanitizeAppIds(raw.trackedAppIds), artworkStyle: raw.artworkStyle === 'icon' || raw.artworkStyle === 'landscape' ? raw.artworkStyle : 'capsule', artworkFallbackOrder, bronzeBorders: raw.bronzeBorders !== false, silverBorders: raw.silverBorders !== false, achievementSize: Number.isFinite(raw.achievementSize) ? Math.max(32, Math.min(72, Math.round(raw.achievementSize!))) : 44, showHeaderTotal: raw.showHeaderTotal === true, showOriginalPlatinumAchievement: raw.showOriginalPlatinumAchievement === true, allowFallbackShapeChange: raw.allowFallbackShapeChange === true, gameArtwork, achievementGroups };
 }
 
 export function toggleAppPreference(state: LibraryPresentationStateV1, key: 'pinnedAppIds' | 'hiddenAppIds' | 'trackedAppIds', appId: number, enabled?: boolean): LibraryPresentationStateV1 {

@@ -47,7 +47,7 @@ export function GlobalPackPicker() {
         <label className="stt-field">
           <span>Default trophy pack</span>
           <SettingHelp text="Choose trophy artwork for games without an individual override." /><select value={state.config.trophies.globalPackId} onChange={(event) => void customizationService.setGlobalPack(event.currentTarget.value)}>
-            {state.packs.map((pack) => <option key={pack.manifest.id} value={pack.manifest.id}>{pack.manifest.name} {pack.source === 'builtin' ? '• built in' : '• custom'}</option>)}
+            {state.packs.map((pack) => <option key={pack.manifest.id} value={pack.manifest.id}>{pack.manifest.name}</option>)}
           </select>
         </label>
         {selected?.source === 'user' && selected.originalSourcePath && <code className="stt-source-path" title={selected.originalSourcePath}>{selected.originalSourcePath}</code>}
