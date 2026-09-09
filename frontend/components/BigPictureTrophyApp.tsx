@@ -55,7 +55,7 @@ export function BigPictureTrophyApp() {
               <TierTotal tier="platinum" count={state.index.totals.platinum} />
             </div>
             <FocusRing>
-              <button className="stt-bp-customize-button" onClick={() => setShowCustomization((value) => !value)}>
+              <button title={message(showCustomization ? 'app.customize.close' : 'bp.customize')} className="stt-bp-customize-button" onClick={() => setShowCustomization((value) => !value)}>
                 {message(showCustomization ? 'app.customize.close' : 'bp.customize')}
               </button>
             </FocusRing>

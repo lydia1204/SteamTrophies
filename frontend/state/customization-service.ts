@@ -3,6 +3,7 @@ import {
   BUILTIN_PACKS,
   compileThemeCssVariables,
   DEFAULT_CUSTOMIZATION_STATE,
+  DEFAULT_THEME,
   InstalledTrophyPack,
   listPackTrophyResources,
   mergePackCatalog,
@@ -48,6 +49,7 @@ export class CustomizationService {
   private readonly listeners = new Set<Listener>();
   private readonly assetCache = new Map<string, Promise<string>>();
   private bootPromise: Promise<void> | null = null;
+  private writeTail: Promise<void> = Promise.resolve();
 
   getSnapshot = (): CustomizationRuntimeState => this.state;
   subscribe = (listener: Listener): (() => void) => { this.listeners.add(listener); return () => this.listeners.delete(listener); };
@@ -164,12 +166,16 @@ export class CustomizationService {
     await this.commit(validateCustomizationState(next));
   }
 
+  async setVisual(patch: Partial<typeof DEFAULT_CUSTOMIZATION_STATE.visual>): Promise<void> {
+    await this.commit({ ...this.state.config, visual: { ...this.state.config.visual, ...patch } });
+  }
+
   async setNotifications(patch: Partial<typeof DEFAULT_CUSTOMIZATION_STATE.notifications>): Promise<void> {
     const notifications = validateNotificationPreferences({ ...this.state.config.notifications, ...patch });
     await this.commit({ ...this.state.config, notifications });
   }
 
-  async setLibraryAppearance(patch: Partial<Pick<typeof DEFAULT_CUSTOMIZATION_STATE.library, 'artworkStyle' | 'artworkFallbackOrder' | 'bronzeBorders' | 'silverBorders' | 'achievementSize'>>): Promise<void> {
+  async setLibraryAppearance(patch: Partial<Omit<typeof DEFAULT_CUSTOMIZATION_STATE.library, 'pinnedAppIds' | 'hiddenAppIds' | 'trackedAppIds'>>): Promise<void> {
     await this.commit({ ...this.state.config, library: { ...this.state.config.library, ...patch } });
   }
 
@@ -248,7 +254,24 @@ export class CustomizationService {
 
   getCssVariables(surface: SurfaceKind): Record<string, string> {
     const configured = this.state.config.safeMode.themesDisabled ? resolveTheme(this.state.config.safeMode.lastKnownGoodThemeId) : resolveTheme(this.state.config.themeId);
-    return compileThemeCssVariables(configured, surface, this.state.config.accessibility);
+    const v = this.state.config.visual;
+    const custom = v.customThemeEnabled && !this.state.config.safeMode.themesDisabled;
+    const theme = custom ? { ...configured, tokens: { ...configured.tokens, color: { ...configured.tokens.color, ...v.customColors } } } : configured;
+    const variables = compileThemeCssVariables(theme, surface, this.state.config.accessibility);
+    for (const tier of ['bronze','silver','gold','platinum'] as const) {
+      const inherited = v.themeBorderColors ? theme.tokens.color[tier] : DEFAULT_THEME.tokens.color[tier];
+      variables[`--stt-tile-${tier}`] = v.tileColors[tier] ?? inherited;
+      variables[`--stt-tooltip-${tier}`] = v.tooltipColors[tier] ?? inherited;
+    }
+    variables['--stt-scrollbar-width'] = v.showScrollbar ? `${v.scrollbarWidth}px` : '0px';
+    variables['--stt-scrollbar-color'] = v.scrollbarColor;
+    variables['--stt-background-image'] = custom ? v.gradient !== 'none' ? `linear-gradient(${v.gradient === 'diagonal' ? 135 : 90}deg,${theme.tokens.color.background},${v.gradientColor})` : 'none' : theme.previewColors ? `linear-gradient(120deg,${theme.previewColors.map(c => `${c}22`).join(',')})` : 'none';
+    variables['--stt-background-animation'] = custom && v.gradient !== 'none' && v.backgroundAnimation === 'drift' && !this.state.config.accessibility.reducedMotion ? 'st-background-drift 18s ease-in-out infinite alternate' : 'none';
+    if (this.state.config.accessibility.highContrast) {
+      variables['--stt-background-image'] = 'none';
+      variables['--stt-background-animation'] = 'none';
+    }
+    return variables;
   }
 
   private async reloadPacks(): Promise<void> {
@@ -261,10 +284,16 @@ export class CustomizationService {
 
   private async commit(config: typeof DEFAULT_CUSTOMIZATION_STATE): Promise<void> {
     const validated = validateCustomizationState(config);
-    await trophyBackend.writeCustomizationJson(JSON.stringify(validated));
+    // Publish immediately so rapid changes build on the newest preferences, then serialize disk writes.
+    const assetChanged = JSON.stringify(validated.trophies) !== JSON.stringify(this.state.config.trophies) || validated.safeMode.externalPacksDisabled !== this.state.config.safeMode.externalPacksDisabled;
     this.state = { ...this.state, config: validated, error: null };
-    this.assetCache.clear();
+    if (assetChanged) this.assetCache.clear();
     this.emit();
+    const operation = this.writeTail.then(async () => {
+      if (!await trophyBackend.writeCustomizationJson(JSON.stringify(validated))) throw new Error('Settings could not be saved. Your changes are visible but may not survive a restart.');
+    });
+    this.writeTail = operation.catch(error => { if (this.state.config === validated) this.setError(error); });
+    await operation;
   }
 
   private requireKnownPack(packId: string): void {

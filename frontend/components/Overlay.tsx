@@ -8,10 +8,12 @@ import { TrophyToastHost } from './TrophyToastHost';
 import { hasNativeDialog, setTrophyPopupOpen } from '../runtime/popup-focus';
 import { watchOutsideClicks } from '../runtime/outside-click';
 import { watchInputModality } from '../runtime/input-modality';
+import { trophyService } from '../state/service';
 
 let modal: { Close(): void } | null = null;
 let modalDocument: Document | null = null;
 let previousFocus: HTMLElement | null = null;
+let openerDocument: Document | null = null;
 
 function didClose(): void {
   modal = null;
@@ -19,6 +21,8 @@ function didClose(): void {
   previousFocus?.blur();
   setTrophyPopupOpen(false);
   previousFocus = null;
+  openerDocument = null;
+  if (!customizationService.getSnapshot().config.visual.rememberScreen) trophyService.closeGame();
 }
 
 function close(): void {
@@ -29,8 +33,16 @@ function close(): void {
 }
 
 function OverlayContent() {
-  useCustomizationState();
+  const customization = useCustomizationState();
   const shell = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const opener = openerDocument;
+    if (!customization.config.visual.blurBackground || !opener || opener === shell.current?.ownerDocument) return undefined;
+    const style = opener.createElement('style');
+    style.textContent = 'html { filter:blur(5px); }';
+    opener.head.appendChild(style);
+    return () => style.remove();
+  }, [customization.config.visual.blurBackground]);
   useEffect(() => {
     const doc = shell.current?.ownerDocument;
     modalDocument = doc ?? null;
@@ -66,6 +78,7 @@ export function openTrophyOverlay(ownerDocument: Document = document): void {
     return;
   }
   previousFocus = ownerDocument.activeElement as HTMLElement | null;
+  openerDocument = ownerDocument;
   // Store/Profile/Community are native BrowserViews, above ordinary DOM overlays.
   // Steam's managed popout owns a native window above those views on macOS.
   modal = showModal(<OverlayContent />, ownerDocument.defaultView ?? undefined, {

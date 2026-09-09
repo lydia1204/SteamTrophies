@@ -21,9 +21,9 @@ export function compileThemeCssVariables(theme: ThemeTokensV1, surface: SurfaceK
   const t = mergeSurfaceTokens(theme, surface);
   const motionEnabled = t.motion.enabled && !accessibility.reducedMotion;
   return {
-    '--stt-color-background': t.color.background,
-    '--stt-color-surface': t.color.surface,
-    '--stt-color-surface-raised': t.color.surfaceRaised,
+    '--stt-color-background': accessibility.highContrast ? '#080b10' : t.color.background,
+    '--stt-color-surface': accessibility.highContrast ? '#131b24' : t.color.surface,
+    '--stt-color-surface-raised': accessibility.highContrast ? '#202b38' : t.color.surfaceRaised,
     '--stt-color-text': accessibility.highContrast ? '#ffffff' : t.color.text,
     '--stt-color-muted': accessibility.highContrast ? '#d6dbe1' : t.color.muted,
     '--stt-color-accent': t.color.accent,

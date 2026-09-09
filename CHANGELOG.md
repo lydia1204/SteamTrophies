@@ -2,6 +2,17 @@
 
 All notable project changes should be recorded here once public releases begin.
 
+## 0.4.0-rc.2 desktop - 2026-09-09
+
+- Actual trophy scaling, responsive row metrics, per-game artwork/fallbacks and live appearance previews.
+- Pill switches, hover help, grouped settings, expanded gaming/pride palette gallery and safe custom gradients/colors.
+- Independent border/tooltip overrides, tooltip layouts, remembered navigation, optional blur, scrollbars, header totals and release years.
+- Local weekly/monthly/yearly trophy recap with explicit data coverage and honest completion-rarity upper bounds.
+- Custom Base Game/expansion membership, collapsible counts, achievement search/progress/tier filters and historical Platinum presentation.
+- Exclusive hidden/pinned states, compact game-header actions, serial settings saves and deduplicated cached reads.
+- 83 automated tests and 135 isolated browser layout fixtures; live runtime release gates remain pending.
+- Toast/overlay work intentionally deferred. Decky remains the separate read-only rc.1 adapter. See [details](docs/SETTINGS_RECAP_0.4.0-rc.2.md).
+
 ## 0.4.0-rc.1 - 2026-09-06
 
 ### Release-candidate hardening

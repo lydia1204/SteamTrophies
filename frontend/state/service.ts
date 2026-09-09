@@ -68,6 +68,7 @@ export class TrophyService {
   private stopAchievementEvents: (() => void) | null = null;
   private scheduler: RefreshScheduler | null = null;
   private readonly gameCache = new Map<number, GameSnapshot>();
+  private readonly previewReads = new Map<number, Promise<GameSnapshot|null>>();
   private discovery: DiscoveryLedgerV1 = emptyDiscoveryLedger();
   private commitTail: Promise<void> = Promise.resolve();
   private refreshInFlight = 0;
@@ -277,22 +278,31 @@ export class TrophyService {
 
   /** Card previews read only an existing shard: never select, refresh, scan, or emit an event. */
   async getCachedCompletion(appId: number) {
-    await this.getCachedPreview(appId);
-    const game = this.gameCache.get(appId);
+    const game = await this.getCachedSnapshot(appId);
     return game ? { achievement: completionAchievement(game.achievements, game.platinum), unlockedAtUnix: game.platinum.unlockedAtUnix } : { achievement: null, unlockedAtUnix: null };
   }
 
-  async getCachedPreview(appId: number): Promise<GameSnapshot['achievements']> {
-    let game = this.gameCache.get(appId);
-    if (!game) {
+  async getCachedSnapshot(appId:number):Promise<GameSnapshot|null> {
+    const cached = this.gameCache.get(appId);
+    if (cached) return cached;
+    const pending = this.previewReads.get(appId);
+    if (pending) return pending;
+    const read = (async () => {
       try {
         const raw = await trophyBackend.readGameJson(appId);
-        if (raw) {
-          game = decodeGameSnapshot(raw, `state/games/${appId}.v1.json`);
-          this.gameCache.set(appId, game);
-        }
-      } catch { return []; } // A missing preview never quarantines or rewrites saved data.
-    }
+        if (!raw) return null;
+        const game = decodeGameSnapshot(raw, `state/games/${appId}.v1.json`);
+        // A live update may have arrived while disk was being read.
+        if (!this.gameCache.has(appId)) this.gameCache.set(appId, game);
+        return this.gameCache.get(appId)!;
+      } catch { return null; } // Preview failures never quarantine, refresh or rewrite saved data.
+    })();
+    this.previewReads.set(appId, read);
+    try { return await read; } finally { this.previewReads.delete(appId); }
+  }
+
+  async getCachedPreview(appId: number): Promise<GameSnapshot['achievements']> {
+    const game = await this.getCachedSnapshot(appId);
     return (game?.achievements ?? []).filter(a => a.achieved)
       .sort((a, b) => (b.unlockedAtUnix ?? 0) - (a.unlockedAtUnix ?? 0))
       .map(a => ({ ...a, globalUnlockPercent: game?.rarityRevision === 1 ? a.globalUnlockPercent : null }));

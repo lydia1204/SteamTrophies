@@ -17,10 +17,10 @@ export function DiagnosticsPanel() {
         <span>{message('diagnostics.schema')}<strong>v{customization.config.version}</strong></span>
       </div>
       <div className="stt-customize-actions">
-        <button onClick={() => void customizationService.setSafeMode({ externalPacksDisabled: !safe.externalPacksDisabled })}>{message(safe.externalPacksDisabled ? 'diagnostics.enablePacks' : 'diagnostics.disablePacks')}</button>
-        <button onClick={() => void customizationService.setSafeMode({ themesDisabled: !safe.themesDisabled })}>{message(safe.themesDisabled ? 'diagnostics.enableTheme' : 'diagnostics.disableTheme')}</button>
-        <button onClick={() => void customizationService.setDeveloper({ responsiveDebug: !customization.config.developer.responsiveDebug })}>{message(customization.config.developer.responsiveDebug ? 'diagnostics.hideResponsive' : 'diagnostics.showResponsive')}</button>
-        <button onClick={() => void customizationService.setDeveloper({ focusDebug: !customization.config.developer.focusDebug })}>{message(customization.config.developer.focusDebug ? 'diagnostics.hideFocus' : 'diagnostics.showFocus')}</button>
+        <button title={message(safe.externalPacksDisabled ? 'diagnostics.enablePacks' : 'diagnostics.disablePacks')} onClick={() => void customizationService.setSafeMode({ externalPacksDisabled: !safe.externalPacksDisabled })}>{message(safe.externalPacksDisabled ? 'diagnostics.enablePacks' : 'diagnostics.disablePacks')}</button>
+        <button title={message(safe.themesDisabled ? 'diagnostics.enableTheme' : 'diagnostics.disableTheme')} onClick={() => void customizationService.setSafeMode({ themesDisabled: !safe.themesDisabled })}>{message(safe.themesDisabled ? 'diagnostics.enableTheme' : 'diagnostics.disableTheme')}</button>
+        <button title={message(customization.config.developer.responsiveDebug ? 'diagnostics.hideResponsive' : 'diagnostics.showResponsive')} onClick={() => void customizationService.setDeveloper({ responsiveDebug: !customization.config.developer.responsiveDebug })}>{message(customization.config.developer.responsiveDebug ? 'diagnostics.hideResponsive' : 'diagnostics.showResponsive')}</button>
+        <button title={message(customization.config.developer.focusDebug ? 'diagnostics.hideFocus' : 'diagnostics.showFocus')} onClick={() => void customizationService.setDeveloper({ focusDebug: !customization.config.developer.focusDebug })}>{message(customization.config.developer.focusDebug ? 'diagnostics.hideFocus' : 'diagnostics.showFocus')}</button>
       </div>
     </section>
   );

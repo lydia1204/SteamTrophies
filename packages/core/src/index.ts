@@ -12,3 +12,4 @@ export * from './summary';
 
 export * from './settings';
 export * from './repair';
+export * from './recap';

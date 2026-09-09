@@ -2,14 +2,16 @@
 
 A customizable trophy cabinet for Steam: rarity-based Bronze, Silver and Gold awards, a synthetic Platinum for completion, and a fast, local-first library.
 
-**0.4.0-rc.1 — experimental release candidate, not a stable release.** SteamTrophies presents Steam achievements; it does not unlock, relock or modify achievements on Steam. It is not affiliated with Valve, Sony, PlayStation or Millennium.
+**0.4.0-rc.2 desktop — experimental release candidate, not a stable release.** SteamTrophies presents Steam achievements; it does not unlock, relock or modify achievements on Steam. It is not affiliated with Valve, Sony, PlayStation or Millennium. The separate read-only Decky adapter remains at 0.4.0-rc.1.
+
+The September 9 update focuses on presentation, settings, recap and achievement browsing. **Toast delivery and the Steam overlay investigation are deferred**, not fixed by this update. See the [new settings guide and validation record](docs/SETTINGS_RECAP_0.4.0-rc.2.md).
 
 [Downloads and release notes](https://github.com/lydia1204/SteamTrophies/releases) · [Issues](https://github.com/lydia1204/SteamTrophies/issues) · [Security policy](SECURITY.md)
 
 > [!IMPORTANT]
 > This plugin requires Millennium's modern Lua/Starlight **`.star`** format. An older host is not sufficient merely because it loads legacy plugins. SteamTrophies is **not listed in the Millennium or Decky plugin stores**. The `.star` candidate is unsigned and intended for compatible test/development hosts. Do not bypass signature verification or operating-system protections to install it.
 >
-> This repository is initially private: downloads and source require access from the owner. A public release and project license have not yet been selected.
+> The repository is public, but these builds are experimental prereleases. A project license has not yet been selected; public source availability is not a redistribution license.
 
 ## Contents
 
@@ -46,7 +48,7 @@ Known limits:
 
 - On the tested Mac, Terraria's own Shift+Tab overlay did not open. A delayed trophy notification was audible and rendered on the desktop, but **no in-game visual was confirmed**. The overlay-injection failure remains unresolved.
 - Fresh imports cannot reconstruct old global rarity or missing unlock dates. Past completion of an expanded achievement catalogue requires evidence, not guesswork.
-- Desktop dashboard shelf rearrangement, a full theme editor, polished backup/import UI, friends-comparison acceptance and physical Deck validation are not finished promises in this RC.
+- Desktop dashboard shelf rearrangement, polished backup/import UI, friends-comparison acceptance and physical Deck validation remain unfinished. The desktop now has a safe custom palette/gradient editor, not an arbitrary CSS or script editor.
 - Steam updates may break private UI integration. Keep backups and expect compatibility fixes.
 
 Running a prebuilt plugin on a compatible host does **not** require Node, Python, a Steam Web API key or a separate SteamTrophies account. Development tools are needed only for source builds. Never enter Steam credentials into a pack or issue report.
@@ -252,7 +254,7 @@ Use the cabinet's gear. Changes save automatically; there is no Apply button.
 | Section | Controls |
 | --- | --- |
 | Trophy packs | Default visual pack, previews, folder import and management. Game overrides take precedence. |
-| Appearance | Portrait (default), landscape or icon artwork; six fallback-order choices; achievement size 32–72 px; optional Bronze/Silver borders; built-in theme; reduced motion; high contrast; text/trophy scales 80–200%. |
+| Appearance | Artwork and fallback shapes; achievement size 32–72 px; actual text/trophy scales 80–200%; pill switches and help; theme gallery/custom colors; independent tier borders; achievement animations; live preview; header total; window memory/blur; scrollbar; release years; recap defaults; tooltip layout and group preferences. |
 | Notifications | Independent sound pack; toast/sound toggles; Platinum celebration; artwork; animation; local position; duration 1.5–15 s; volume; 1–6 visible toasts; audio cooldown; quiet hours; tier previews; delayed outside-window test; delivery diagnostics. |
 | Library & data | Rarity repair, explicit discovery, hidden-game restoration, pins and project tracking. |
 | Diagnostics | Counts/schema; temporarily disable external packs/themes; responsive/focus debugging. These are troubleshooting aids, not full host health certification. |
@@ -260,7 +262,11 @@ Use the cabinet's gear. Changes save automatically; there is no Apply button.
 
 Artwork tries the selected style first, then your fallback order, skipping missing candidates without cycling. Missing portraits can fall back to landscape or a **contained** square icon instead of stretching it. Landscape uses Valve's store-header proportions, not a forced 16:9 crop. Some games lack art; offline/CDN failures can also trigger fallback.
 
-Themes include Midnight, OLED Black, Steam Blue and High Contrast. Text scale, trophy scale and achievement-art size are independent. Adjust them before changing system display scaling.
+Themes include Midnight, OLED Black, Steam Blue and High Contrast, plus gaming- and pride-inspired palettes with swatch previews. Custom colors and optional slow gradients layer over the selected theme. System reduced motion takes priority over animations. Text scale, trophy scale and achievement-art size are independent. Adjust them before changing system display scaling.
+
+Open the artwork button in a game’s header for per-game artwork/fallback choices, trophy overrides and custom Base Game/expansion groups. Group membership is configured explicitly: the plugin does not invent DLC boundaries from achievement names or dates. Pinning a hidden game restores it automatically; hiding a pinned game removes its pin.
+
+The recap button beside Settings opens weekly, monthly and yearly **achievement-history** statistics. It does not estimate play hours or pretend to reproduce data unavailable to the plugin. Completion rarity is displayed as `≤x%`, an upper bound from the rarest achievement—not the exact percentage completing the entire game. [Read the detailed explanations and controls](docs/SETTINGS_RECAP_0.4.0-rc.2.md).
 
 The per-achievement **Icon** editor button is deliberately hidden/deprecated in desktop rows; its code and existing saved overrides remain supported. Use the game's **Trophy icons** page for exposed game/pack/tier controls. This is not a reason to delete customization.
 

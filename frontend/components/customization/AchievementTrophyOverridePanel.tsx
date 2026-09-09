@@ -1,3 +1,4 @@
+import { SettingHelp } from './SettingControls';
 import { useMemo } from 'react';
 import type { AchievementRecord, TrophyTier } from '../../../packages/core/src';
 import type { TrophyPackResourceKey } from '../../../packages/customization/src';
@@ -43,7 +44,7 @@ export function AchievementTrophyOverridePanel({ appId, achievement, tier, onClo
         <strong>{achievement.name || achievement.id}</strong>
         <label className="stt-field">
           <span>Override pack</span>
-          <select value={selectedPackId} onChange={(event) => void choosePack(event.currentTarget.value)}>
+          <SettingHelp text="Change this achievement only. Inherit restores the game’s choice." /><select value={selectedPackId} onChange={(event) => void choosePack(event.currentTarget.value)}>
             <option value="">Inherit game / tier / global trophy</option>
             {state.packs.map((pack) => <option key={pack.manifest.id} value={pack.manifest.id}>{pack.manifest.name}</option>)}
           </select>
@@ -51,14 +52,14 @@ export function AchievementTrophyOverridePanel({ appId, achievement, tier, onClo
         {selectedPack && (
           <label className="stt-field">
             <span>Icon inside {selectedPack.manifest.name}</span>
-            <select value={override?.resourceKey ?? `trophy.${tier}`} onChange={(event) => void chooseResource(event.currentTarget.value as TrophyPackResourceKey)}>
+            <SettingHelp text="Choose one icon from this pack for this achievement." /><select value={override?.resourceKey ?? `trophy.${tier}`} onChange={(event) => void chooseResource(event.currentTarget.value as TrophyPackResourceKey)}>
               {resources.map((key) => <option key={key} value={key}>{humanResourceName(key)}</option>)}
             </select>
           </label>
         )}
         {selectedPack?.manifest.customTrophies && <small>{Object.keys(selectedPack.manifest.customTrophies).length} named one-off icons are available in this pack.</small>}
       </div>
-      <button className="st-refresh-button" onClick={onClose}>Done</button>
+      <button title="Done" className="st-refresh-button" onClick={onClose}>Done</button>
     </div>
   );
 }

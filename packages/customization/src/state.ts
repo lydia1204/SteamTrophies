@@ -5,6 +5,7 @@ import { DEFAULT_LAYOUT_STATE, validateLayoutState } from './layout';
 import { DEFAULT_PROJECT_STATE, validateProjectState } from './projects';
 import { DEFAULT_LIBRARY_PRESENTATION, DEFAULT_NOTIFICATION_PREFERENCES, toggleAppPreference, validateLibraryPresentation, validateNotificationPreferences } from './preferences';
 import { DEFAULT_SAFE_MODE, validateSafeModeState } from './diagnostics';
+import { DEFAULT_VISUAL, validateVisual } from './visual';
 
 export const DEFAULT_CUSTOMIZATION_STATE: CustomizationState = Object.freeze({
   version: 2,
@@ -15,6 +16,7 @@ export const DEFAULT_CUSTOMIZATION_STATE: CustomizationState = Object.freeze({
   projects: DEFAULT_PROJECT_STATE,
   library: DEFAULT_LIBRARY_PRESENTATION,
   notifications: DEFAULT_NOTIFICATION_PREFERENCES,
+  visual: DEFAULT_VISUAL,
   safeMode: DEFAULT_SAFE_MODE,
   developer: { focusDebug: false, responsiveDebug: false },
 });
@@ -32,6 +34,7 @@ export function validateCustomizationState(value: unknown): CustomizationState {
     projects: validateProjectState(v.projects),
     library: validateLibraryPresentation(v.library),
     notifications: validateNotificationPreferences(v.notifications),
+    visual: validateVisual(v.visual),
     safeMode: validateSafeModeState(v.safeMode),
     developer: {
       focusDebug: v.developer?.focusDebug === true,
@@ -48,6 +51,7 @@ function migrateV1(v: CustomizationStateV1): CustomizationState {
     projects: structuredClone(DEFAULT_PROJECT_STATE),
     library: structuredClone(DEFAULT_LIBRARY_PRESENTATION),
     notifications: structuredClone(DEFAULT_NOTIFICATION_PREFERENCES),
+    visual: structuredClone(DEFAULT_VISUAL),
     safeMode: structuredClone(DEFAULT_SAFE_MODE),
     developer: { focusDebug: false, responsiveDebug: false },
   };

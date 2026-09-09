@@ -1,3 +1,4 @@
+import { SettingHelp } from './SettingControls';
 import { useState } from 'react';
 import type { GameSnapshot, TrophyTier } from '../../../packages/core/src';
 import { customizationService } from '../../state/customization-service';
@@ -73,7 +74,7 @@ export function GameTrophyOverridePanel({ game, onClose }: { game: GameSnapshot;
           <h3>Trophy icon override</h3>
           <p>Choose a trophy pack only for {game.name}. Achievement artwork remains separate.</p>
         </div>
-        <button onClick={onClose}>Done</button>
+        <button title="Done" onClick={onClose}>Done</button>
       </header>
 
       <div className="stt-pack-preview" data-stt-slot="pack-preview">
@@ -82,7 +83,7 @@ export function GameTrophyOverridePanel({ game, onClose }: { game: GameSnapshot;
 
       <label className="stt-field">
         <span>Pack for this game</span>
-        <select value={selected} disabled={busy} onChange={(event) => void customizationService.setGamePack(game.appId, event.currentTarget.value || null)}>
+        <SettingHelp text="Override the library’s trophy pack for this game." /><select value={selected} disabled={busy} onChange={(event) => void customizationService.setGamePack(game.appId, event.currentTarget.value || null)}>
           <option value="">Use global pack ({state.packs.find((pack) => pack.manifest.id === inherited)?.manifest.name ?? inherited})</option>
           {state.packs.map((pack) => <option key={pack.manifest.id} value={pack.manifest.id}>{pack.manifest.name} {pack.source === 'builtin' ? '• built in' : '• custom'}</option>)}
         </select>
@@ -94,7 +95,7 @@ export function GameTrophyOverridePanel({ game, onClose }: { game: GameSnapshot;
           return (
             <label className="stt-field" key={tier}>
               <span>{tier.replace(/^./, (c) => c.toUpperCase())} override</span>
-              <select value={ref?.packId ?? ''} disabled={busy} onChange={(event) => void chooseTierPack(tier, event.currentTarget.value)}>
+              <SettingHelp text="Override this trophy tier for this game only." /><select value={ref?.packId ?? ''} disabled={busy} onChange={(event) => void chooseTierPack(tier, event.currentTarget.value)}>
                 <option value="">Inherit game pack</option>
                 {state.packs.map((pack) => <option key={pack.manifest.id} value={pack.manifest.id}>{pack.manifest.name}</option>)}
               </select>
@@ -112,10 +113,10 @@ export function GameTrophyOverridePanel({ game, onClose }: { game: GameSnapshot;
       </div>
 
       <div className="stt-customize-actions">
-        <button disabled={busy} onClick={() => void importPack()}>{busy ? 'Importing…' : 'Import / update pack folder'}</button>
-        {effectivePack?.source === 'user' && effectivePack.originalSourcePath && <button disabled={busy} onClick={openOriginalSource}>Open original source</button>}
-        {effectivePack?.source === 'user' && <button disabled={busy} onClick={() => void openManagedFolder()}>Open managed copy</button>}
-        {selected && <button disabled={busy} onClick={() => void customizationService.setGamePack(game.appId, null)}>Reset game override</button>}
+        <button title={busy ? 'Importing…' : 'Import / update pack folder'} disabled={busy} onClick={() => void importPack()}>{busy ? 'Importing…' : 'Import / update pack folder'}</button>
+        {effectivePack?.source === 'user' && effectivePack.originalSourcePath && <button title="Open original source" disabled={busy} onClick={openOriginalSource}>Open original source</button>}
+        {effectivePack?.source === 'user' && <button title="Open managed copy" disabled={busy} onClick={() => void openManagedFolder()}>Open managed copy</button>}
+        {selected && <button title="Reset game override" disabled={busy} onClick={() => void customizationService.setGamePack(game.appId, null)}>Reset game override</button>}
       </div>
 
       <p className="stt-pack-help">A custom pack folder contains <code>manifest.json</code> plus PNG/JPEG/WebP trophy files. SteamTrophies validates it, records the original source location, and copies an isolated managed version before use.</p>

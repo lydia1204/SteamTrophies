@@ -43,6 +43,7 @@ export function ResponsiveBoundary({ surface, className, component, children, st
       className={className}
       data-stt-root=""
       data-stt-reduced-motion={customization.config.accessibility.reducedMotion ? 'true' : 'false'}
+      data-stt-all-tier-effects={customization.config.visual.allTierEffects ? 'true' : 'false'}
       data-stt-component={component}
       data-stt-surface={surface}
       data-stt-width-band={metrics.widthBand}

@@ -8,5 +8,7 @@ export * from './surface';
 export * from './responsive';
 export * from './projects';
 export * from './preferences';
+export * from './presentation';
+export * from './visual';
 export * from './diagnostics';
 export * from './localization';

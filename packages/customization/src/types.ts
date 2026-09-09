@@ -60,6 +60,7 @@ export interface TrophyOverrideStateV1 {
 }
 
 export interface ThemeTokensV1 {
+  previewColors?: readonly string[];
   version: 1;
   id: string;
   name: string;
@@ -129,6 +130,11 @@ export interface LibraryPresentationStateV1 {
   bronzeBorders: boolean;
   silverBorders: boolean;
   achievementSize: number;
+  showHeaderTotal: boolean;
+  showOriginalPlatinumAchievement: boolean;
+  allowFallbackShapeChange: boolean;
+  gameArtwork: Record<string, { style: 'capsule' | 'icon' | 'landscape'; fallbackOrder: ('capsule' | 'icon' | 'landscape')[] }>;
+  achievementGroups: Record<string, AchievementGroupV1[]>;
   /** Visible trophy games manually floated to the top. */
   pinnedAppIds: AppId[];
   /** Visible trophy games explicitly hidden from normal shelves. */
@@ -136,6 +142,8 @@ export interface LibraryPresentationStateV1 {
   /** Explicit 0%-game tracking exception. Runtime may probe/persist these even under earned-only policy. */
   trackedAppIds: AppId[];
 }
+
+export interface AchievementGroupV1 { id:string; title:string; kind:'base' | 'expansion'; achievementIds:string[]; }
 
 export type TrophyToastPosition = 'top_left' | 'top_right' | 'bottom_left' | 'bottom_right';
 
@@ -189,11 +197,37 @@ export interface CustomizationStateV2 {
   projects: TrophyProjectStateV1;
   library: LibraryPresentationStateV1;
   notifications: NotificationPreferencesV1;
+  visual: VisualPreferencesV1;
   safeMode: SafeModeStateV1;
   developer: {
     focusDebug: boolean;
     responsiveDebug: boolean;
   };
+}
+
+export interface VisualPreferencesV1 {
+  recapPeriod: 'week' | 'month' | 'year';
+  recapIncludeHidden: boolean;
+  rememberScreen: boolean;
+  blurBackground: boolean;
+  showScrollbar: boolean;
+  scrollbarColor: string;
+  scrollbarWidth: number;
+  showReleaseYearLibrary: boolean;
+  showReleaseYearDetail: boolean;
+  showCompletionRarity: boolean;
+  showGroupRarity: boolean;
+  groupExpansion: 'all' | 'base' | 'none';
+  tooltipLayout: 'standard' | 'description-first' | 'compact';
+  allTierEffects: boolean;
+  themeBorderColors: boolean;
+  tileColors: Partial<Record<TrophyTier, string>>;
+  tooltipColors: Partial<Record<TrophyTier, string>>;
+  customThemeEnabled: boolean;
+  customColors: Partial<ThemeTokensV1['tokens']['color']>;
+  gradient: 'none' | 'diagonal' | 'horizontal';
+  gradientColor: string;
+  backgroundAnimation: 'none' | 'drift';
 }
 
 export type CustomizationState = CustomizationStateV2;

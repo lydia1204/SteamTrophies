@@ -1,3 +1,4 @@
+import { SettingHelp } from './SettingControls';
 import { useState } from 'react';
 import { customizationService } from '../../state/customization-service';
 import { useCustomizationState } from '../../state/customization-hooks';
@@ -45,7 +46,7 @@ export function GlobalPackPicker() {
       <div className="stt-global-pack-fields">
         <label className="stt-field">
           <span>Default trophy pack</span>
-          <select value={state.config.trophies.globalPackId} onChange={(event) => void customizationService.setGlobalPack(event.currentTarget.value)}>
+          <SettingHelp text="Choose trophy artwork for games without an individual override." /><select value={state.config.trophies.globalPackId} onChange={(event) => void customizationService.setGlobalPack(event.currentTarget.value)}>
             {state.packs.map((pack) => <option key={pack.manifest.id} value={pack.manifest.id}>{pack.manifest.name} {pack.source === 'builtin' ? '• built in' : '• custom'}</option>)}
           </select>
         </label>
@@ -53,9 +54,9 @@ export function GlobalPackPicker() {
         {message && <div className="stt-customize-message">{message}</div>}
       </div>
       <div className="stt-customize-actions">
-        <button onClick={() => void importPack()}>Import pack folder</button>
-        {selected?.source === 'user' && selected.originalSourcePath && <button onClick={openOriginal}>Open original source</button>}
-        {selected?.source === 'user' && <button onClick={() => void removeSelected()}>Remove pack</button>}
+        <button title="Import pack folder" onClick={() => void importPack()}>Import pack folder</button>
+        {selected?.source === 'user' && selected.originalSourcePath && <button title="Open original source" onClick={openOriginal}>Open original source</button>}
+        {selected?.source === 'user' && <button title="Remove pack" onClick={() => void removeSelected()}>Remove pack</button>}
       </div>
     </section>
   );

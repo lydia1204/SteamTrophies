@@ -6,6 +6,8 @@ export interface SteamAppOverview {
   display_name?: string;
   sort_as?: string;
   app_type?: number;
+  rt_original_release_date?: number;
+  rt_steam_release_date?: number;
 }
 
 declare const appStore: {
@@ -23,6 +25,18 @@ export function resolveGameName(appId: number): string {
   } catch {
     return `Steam App ${appId}`;
   }
+}
+
+/** Steam's typed AppOverview timestamps; no guessed years or extra network requests. */
+export function resolveReleaseYear(appId: number): number | null {
+  try {
+    if (typeof appStore === 'undefined') return null;
+    const app = appStore.GetAppOverviewByAppID?.(appId) ?? appStore.m_mapApps?.get(appId);
+    const timestamp = app?.rt_original_release_date || app?.rt_steam_release_date;
+    if (typeof timestamp !== 'number' || !Number.isFinite(timestamp) || timestamp <= 0) return null;
+    const year = new Date(timestamp * 1000).getUTCFullYear();
+    return year >= 1970 && year <= new Date().getFullYear() + 5 ? year : null;
+  } catch { return null; }
 }
 
 /**
