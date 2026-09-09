@@ -1,4 +1,4 @@
-import { callable, definePlugin } from '@decky/api';
+import { callable as deckyCallable, definePlugin } from '@decky/api';
 import { ButtonItem, PanelSection, PanelSectionRow, staticClasses } from '@decky/ui';
 import { useCallback, useEffect, useState } from 'react';
 import { FaTrophy } from 'react-icons/fa';
@@ -33,8 +33,11 @@ interface StorageHealth {
   gameShardBytes: number;
 }
 
-const readIndexJson = callable<[], string | null>('read_index_json');
-const getStorageHealth = callable<[], StorageHealth>('get_storage_health');
+// These calls target Decky's Python backend, not Millennium's Lua FFI. Give the
+// imported API its host-specific name so Starlight 1.1.4's repository-wide scan
+// does not mistake unrelated callable() sites for Millennium backend exports.
+const readIndexJson = deckyCallable<[], string | null>('read_index_json');
+const getStorageHealth = deckyCallable<[], StorageHealth>('get_storage_health');
 
 function decodeIndex(raw: string): LibraryIndex {
   const value = JSON.parse(raw) as Partial<LibraryIndex>;

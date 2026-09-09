@@ -31,6 +31,8 @@ The full local `release:validate` suite and Lua validation passed again for this
 
 GitHub Actions results are separate from these local checks. Runtime evidence remains **0 pass / 20 pending** in the broad release ledger. The gamer QA ledger contains 42 engineering passes and eight live checks still needing evidence.
 
+The first clean Windows/Linux CI runs exposed Starlight 1.1.4 treating Decky's `callable` API as Millennium Lua FFI across the repository. A follow-up names that import `deckyCallable`, preserving the Python protocol and avoiding fabricated Lua exports or disabled validation. This is a source-tooling correction; the candidate's existing runtime packages retain the hashes above. Consult Actions for the follow-up result.
+
 ## Known limitations and next tests
 
 - macOS uses an experimental source-built host; a supported stock installer path is not established.
