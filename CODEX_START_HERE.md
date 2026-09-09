@@ -1,6 +1,8 @@
 # Codex: start here
 
-Current repository state: **SteamTrophies 0.4.0-rc.1 release candidate**.
+Current repository state: **SteamTrophies 0.4.0-rc.2 desktop release candidate**; Decky remains the separate rc.1 read-only adapter.
+
+Read [the rc.2 settings/recap guide](docs/SETTINGS_RECAP_0.4.0-rc.2.md) and [rollout/validation notes](docs/RELEASE_NOTES_0.4.0-rc.2.md) before resuming older checklists. Toast notifications and the Steam/Millennium overlay investigation are explicitly deferred by the user. Do not resume them or change the Vulkan launch option without a new request. Non-toast code is implemented, packaged and installed; live UI acceptance remains distinct from passing automated checks.
 
 The broad architecture and offline hardening passes are complete. Do not restart the project from scratch.
 

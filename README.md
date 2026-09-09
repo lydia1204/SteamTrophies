@@ -466,7 +466,8 @@ Further documentation:
 - [Storage](docs/STORAGE.md), [security](docs/SECURITY.md), [packs](docs/RESOURCE_PACKS.md)
 - [Platform matrix](docs/PLATFORM_MATRIX.md), [Big Picture](docs/BIG_PICTURE.md), [responsive compatibility](docs/RESPONSIVE_COMPATIBILITY.md), [performance](docs/PERFORMANCE.md)
 - [Latest desktop QA](docs/DESKTOP_QA_2026-09-08.md), [settings QA](docs/SETTINGS_QA_2026-09-07.md), [runtime release gates](docs/RUNTIME_RELEASE_GATES.md)
-- [Candidate release notes and artifact hashes](docs/RELEASE_NOTES_0.4.0-rc.1.md)
+- [Current candidate release notes and artifact hashes](docs/RELEASE_NOTES_0.4.0-rc.2.md)
+- [Previous rc.1 candidate](docs/RELEASE_NOTES_0.4.0-rc.1.md)
 
 Older pass reports describe dated snapshots, not a promise that every roadmap feature is shipped. This README and the latest QA report clarify current behavior.
 
